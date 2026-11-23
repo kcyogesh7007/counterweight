@@ -7,8 +7,10 @@
 import { describe, expect, it } from 'vitest'
 import {
   createInitialState,
+  createResumedState,
   createSolvedState,
   dropWeight,
+  progressSnapshot,
   elapsedMs,
   formatTime,
   resetBoard,
@@ -16,6 +18,7 @@ import {
   tapHook,
   trayWeights,
   type GameState,
+  type SavedProgress,
 } from './moves.ts'
 import { DAILY_PUZZLES } from './puzzles.ts'
 
@@ -214,6 +217,48 @@ describe('createSolvedState (coming back to a puzzle you already solved)', () =>
     expect(s.rehangs).toBe(2)
     expect(elapsedMs(s, 999_999_999)).toBe(134_000)
     expect(tapHook(s, 'a', puzzle, 0)).toBe(s) // no more moves
+  })
+})
+
+describe('saving and resuming a half-finished puzzle', () => {
+  it('saves nothing before the first move', () => {
+    expect(progressSnapshot(createInitialState(), 5000)).toBe(null)
+  })
+
+  it('saves the hung weights, re-hangs and time played so far', () => {
+    let s = hang(createInitialState(), 7, 'a', 1000)
+    s = hang(s, 3, 'a', 2000) // swap: 1 re-hang
+    expect(progressSnapshot(s, 9000)).toEqual({ placement: { a: 3 }, rehangs: 1, elapsed: 8000 })
+  })
+
+  it('saves nothing once solved', () => {
+    expect(progressSnapshot(hangSolution(createInitialState(), 0), 99_000)).toBe(null)
+  })
+
+  it('resumes exactly where it was, and the timer carries on', () => {
+    const s = createResumedState(puzzle, { placement: { a: 3, e1: 1 }, rehangs: 2, elapsed: 65_000 }, 1_000_000)
+    expect(s.placement).toEqual({ a: 3, e1: 1 })
+    expect(s.rehangs).toBe(2)
+    expect(s.selected).toBe(null)
+    expect(elapsedMs(s, 1_000_000)).toBe(65_000)
+    expect(elapsedMs(s, 1_010_000)).toBe(75_000) // 10 more seconds of play
+  })
+
+  it('a resumed puzzle can be finished as normal', () => {
+    let s = createResumedState(puzzle, { placement: { a: 7, c1: 3, c2: 4 }, rehangs: 0, elapsed: 30_000 }, 100_000)
+    for (const [hookId, weight] of SOLUTION.filter(([h]) => !['a', 'c1', 'c2'].includes(h))) s = hang(s, weight, hookId, 110_000)
+    expect(elapsedMs(s, 999_999)).toBe(40_000)
+  })
+
+  it('starts fresh if the saved data is damaged', () => {
+    const bad: SavedProgress[] = [
+      { placement: { zzz: 3 }, rehangs: 0, elapsed: 10 }, // unknown hook
+      { placement: { a: 99 }, rehangs: 0, elapsed: 10 }, // weight not in the tray
+      { placement: { a: 3, c1: 3 }, rehangs: 0, elapsed: 10 }, // same weight twice
+      { placement: { a: 3 }, rehangs: -1, elapsed: 10 }, // impossible count
+      { placement: { a: 3 }, rehangs: 0, elapsed: Number.NaN }, // broken time
+    ]
+    for (const saved of bad) expect(createResumedState(puzzle, saved, 0)).toEqual(createInitialState())
   })
 })
 

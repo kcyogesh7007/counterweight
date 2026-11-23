@@ -10,7 +10,7 @@ A bar balances when **(total weight under the left arm) × (left notches) = (tot
 
 **Playing:** tap a weight and then tap a hook, or drag a weight onto a hook. To take a weight down, tap it or drag it off the mobile. Dropping a weight onto a full hook sends the old weight back to the tray. Each weight taken down counts as one "re-hang".
 
-Built with React, Vite and TypeScript. There's no backend. The only things saved are whether you finished the tutorial and your result for each day, and they're stored in your own browser.
+Built with React, Vite and TypeScript. There's no backend. The only things saved are whether you finished the tutorial, your result for each day, and today's half-finished puzzle (so a reload carries on where you left off, timer included). They're stored in your own browser.
 
 ## Run it
 

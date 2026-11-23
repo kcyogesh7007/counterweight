@@ -8,7 +8,7 @@
 
 import { useEffect, type ReactNode } from 'react'
 import { weightRadius } from '../game/layout.ts'
-import { formatTime } from '../game/moves.ts'
+import { formatTime, type SavedProgress } from '../game/moves.ts'
 import type { Puzzle } from '../game/types.ts'
 import { useDrag } from '../hooks/useDrag.ts'
 import { useGame } from '../hooks/useGame.ts'
@@ -27,6 +27,10 @@ type GameScreenProps = {
   isTutorial: boolean
   /** If this puzzle was solved before: start solved, showing this result. */
   earlierResult?: DayResult | null
+  /** A half-finished game saved earlier: carry on from it. */
+  resumeFrom?: SavedProgress | null
+  /** Called about once a second while playing, with what to save. */
+  onProgress?: (progress: SavedProgress) => void
   /** Button on the win card (optional). */
   winButtonLabel?: string
   onWinButton?: () => void
@@ -37,8 +41,8 @@ type GameScreenProps = {
 }
 
 export function GameScreen(props: GameScreenProps) {
-  const { puzzle, subtitle, isTutorial, earlierResult, winButtonLabel, onWinButton, winExtra, onSolved } = props
-  const game = useGame(puzzle, earlierResult)
+  const { puzzle, subtitle, isTutorial, earlierResult, resumeFrom, onProgress, winButtonLabel, onWinButton, winExtra, onSolved } = props
+  const game = useGame(puzzle, { earlierResult, resumeFrom, onProgress })
   const { drag, startDrag, shouldIgnoreClick } = useDrag(game.onDrop, !game.isSolved)
   const hungCount = Object.keys(game.placement).length
 

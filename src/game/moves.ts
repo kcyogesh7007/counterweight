@@ -18,7 +18,7 @@
 // Date.now()) instead of reading the clock themselves. In tests we can then
 // pass simple made-up times like 1000 and 5000.
 
-import { isSolved } from './balance.ts'
+import { collectHooks, isSolved } from './balance.ts'
 import type { Placement, Puzzle } from './types.ts'
 
 export type GameState = {
@@ -36,6 +36,50 @@ export type GameState = {
 
 export function createInitialState(): GameState {
   return { placement: {}, selected: null, rehangs: 0, startedAt: null, solvedAt: null }
+}
+
+/** A half-finished puzzle, as saved between visits. */
+export type SavedProgress = {
+  placement: Placement
+  rehangs: number
+  /** Milliseconds played so far. */
+  elapsed: number
+}
+
+/** What to save right now for a puzzle in progress (null = nothing worth saving). */
+export function progressSnapshot(state: GameState, now: number): SavedProgress | null {
+  if (state.startedAt === null || state.solvedAt !== null) return null
+  return { placement: { ...state.placement }, rehangs: state.rehangs, elapsed: elapsedMs(state, now) }
+}
+
+/**
+ * Carry on a half-finished puzzle. The timer continues from the saved time:
+ * we pretend the clock started `elapsed` ms before `now`.
+ * The saved weights are checked against the puzzle first; anything odd
+ * (unknown hooks, weights not in the tray, the same weight twice) means we
+ * start fresh instead.
+ */
+export function createResumedState(puzzle: Puzzle, saved: SavedProgress, now: number): GameState {
+  const hookIds = new Set(collectHooks(puzzle.root).map((h) => h.id))
+  const entries = Object.entries(saved.placement)
+  const weights = entries.map(([, w]) => w)
+  const valid =
+    entries.every(([hookId, w]) => hookIds.has(hookId) && puzzle.weights.includes(w)) &&
+    new Set(weights).size === weights.length &&
+    Number.isFinite(saved.elapsed) && saved.elapsed >= 0 &&
+    Number.isInteger(saved.rehangs) && saved.rehangs >= 0
+  if (!valid) return createInitialState()
+
+  const placement = { ...saved.placement }
+  const startedAt = now - saved.elapsed
+  return {
+    placement,
+    selected: null,
+    rehangs: saved.rehangs,
+    startedAt,
+    // (Can't normally happen, but if the saved weights already balance everything, it's solved.)
+    solvedAt: isSolved(puzzle, placement) ? now : null,
+  }
 }
 
 /**

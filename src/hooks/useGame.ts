@@ -10,29 +10,40 @@
 // useEffect runs code AFTER React draws. We use it to start a 1-second
 // "tick" while the timer is running, so the clock on screen updates.
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   createInitialState,
+  createResumedState,
   createSolvedState,
   dropWeight,
   elapsedMs,
+  progressSnapshot,
   resetBoard,
   selectWeight,
   tapHook,
   type DragSource,
   type GameState,
+  type SavedProgress,
 } from '../game/moves.ts'
 import type { Puzzle } from '../game/types.ts'
 
-/**
- * @param puzzle        the puzzle being played
- * @param earlierResult if this puzzle was already solved before, its result:
- *                      the game then starts solved, showing that result
- */
-export function useGame(puzzle: Puzzle, earlierResult?: { elapsed: number; rehangs: number } | null) {
-  const [state, setState] = useState<GameState>(() =>
-    earlierResult ? createSolvedState(puzzle, earlierResult) : createInitialState(),
-  )
+type Options = {
+  /** If this puzzle was already solved before, its result: the game starts solved. */
+  earlierResult?: { elapsed: number; rehangs: number } | null
+  /** A half-finished game saved earlier: the game carries on from it. */
+  resumeFrom?: SavedProgress | null
+  /** Called about once a second (and after every move) with what to save. */
+  onProgress?: (progress: SavedProgress) => void
+}
+
+/** @param puzzle the puzzle being played */
+export function useGame(puzzle: Puzzle, { earlierResult, resumeFrom, onProgress }: Options = {}) {
+  // Pick the starting state once: solved before? half-finished? or fresh.
+  const [state, setState] = useState<GameState>(() => {
+    if (earlierResult) return createSolvedState(puzzle, earlierResult)
+    if (resumeFrom) return createResumedState(puzzle, resumeFrom, Date.now())
+    return createInitialState()
+  })
   const [now, setNow] = useState(() => Date.now())
 
   const isRunning = state.startedAt !== null && state.solvedAt === null
@@ -44,6 +55,30 @@ export function useGame(puzzle: Puzzle, earlierResult?: { elapsed: number; rehan
     const id = setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(id)
   }, [isRunning])
+
+  // Save the game in progress: after every move and every clock tick, and
+  // once more if the page is being closed or hidden (so no time is lost).
+  // A "ref" holds the latest callback without re-running the effects.
+  const onProgressRef = useRef(onProgress)
+  useEffect(() => {
+    onProgressRef.current = onProgress
+  })
+  useEffect(() => {
+    const snapshot = progressSnapshot(state, Date.now())
+    if (snapshot) onProgressRef.current?.(snapshot)
+  }, [state, now])
+  useEffect(() => {
+    function saveNow() {
+      const snapshot = progressSnapshot(state, Date.now())
+      if (snapshot) onProgressRef.current?.(snapshot)
+    }
+    window.addEventListener('pagehide', saveNow)
+    document.addEventListener('visibilitychange', saveNow)
+    return () => {
+      window.removeEventListener('pagehide', saveNow)
+      document.removeEventListener('visibilitychange', saveNow)
+    }
+  }, [state])
 
   return {
     ...state,

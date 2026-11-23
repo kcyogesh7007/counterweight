@@ -9,7 +9,8 @@
 // If you come back the same day, you see your result again (no re-tries).
 //
 // What the browser remembers (see storage.ts): whether the tutorial is
-// done, and your result for each day you solved.
+// done, your result for each day you solved, and today's half-finished
+// puzzle (so a reload carries on where you left off).
 
 import { useState } from 'react'
 import { GameScreen } from './components/GameScreen.tsx'
@@ -18,7 +19,15 @@ import { NextPuzzleCountdown } from './components/NextPuzzleCountdown.tsx'
 import { StreakStats } from './components/StreakStats.tsx'
 import { dayNumber, formatShortDate, puzzleForDay } from './game/daily.ts'
 import { DAILY_PUZZLES, TUTORIAL_PUZZLES } from './game/puzzles.ts'
-import { hasSeenTutorial, loadResult, markTutorialSeen, saveResult } from './storage.ts'
+import {
+  clearInProgress,
+  hasSeenTutorial,
+  loadInProgress,
+  loadResult,
+  markTutorialSeen,
+  saveInProgress,
+  saveResult,
+} from './storage.ts'
 
 /** Which screen is showing: a tutorial step, or the daily puzzle. */
 type Screen = { kind: 'tutorial'; step: number } | { kind: 'daily' }
@@ -101,7 +110,13 @@ function DailyPuzzle({ day, onPlayNextDay }: { day: number; onPlayNextDay: () =>
       subtitle={<Difficulty level={level} label={weekday} />}
       isTutorial={false}
       earlierResult={loadResult(day)}
-      onSolved={(result) => saveResult(day, result)}
+      // Half-finished? Carry on where you left off. Saved as you play.
+      resumeFrom={loadInProgress(day)}
+      onProgress={(progress) => saveInProgress({ day, ...progress })}
+      onSolved={(result) => {
+        saveResult(day, result)
+        clearInProgress()
+      }}
       winExtra={
         <>
           <StreakStats day={day} />
