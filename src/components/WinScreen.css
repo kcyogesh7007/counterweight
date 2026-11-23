@@ -1,19 +1,21 @@
 /* WinScreen.css — the "Balanced!" card. */
 
 .win {
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-3);
   text-align: center;
   /* Slide up gently, starting just as the bars finish levelling out. */
-  animation: win-appear 400ms ease-out var(--tilt-duration) both;
+  animation: win-appear 450ms cubic-bezier(0.2, 0.8, 0.3, 1) var(--tilt-duration) both;
 }
 
 @keyframes win-appear {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(16px) scale(0.98);
   }
   to {
     opacity: 1;
@@ -21,32 +23,74 @@
   }
 }
 
+/* A thin band of brass along the top edge of the card */
+.win::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--brass-dark), var(--brass-light), var(--brass-mid), var(--brass-light), var(--brass-dark));
+}
+
+/* "✦ Balanced! ✦" with small gold stars that twinkle in after the card appears */
 .win-title {
-  font-size: var(--font-size-xl);
-  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-family: var(--font-display);
+  font-size: var(--font-size-2xl);
+  font-weight: 650;
+  line-height: 1.1;
   color: var(--color-success);
   outline: none; /* focused for screen readers only, no visible ring needed */
+}
+
+.win-title::before,
+.win-title::after {
+  content: '✦';
+  font-size: 0.5em;
+  color: var(--brass-mid);
+  animation: star-twinkle 900ms ease-out calc(var(--tilt-duration) + 300ms) both;
+}
+
+.win-title::after {
+  animation-delay: calc(var(--tilt-duration) + 450ms);
+}
+
+@keyframes star-twinkle {
+  0% {
+    opacity: 0;
+    transform: scale(0.2) rotate(-90deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.4) rotate(10deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
 }
 
 .win-subtitle {
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
+  max-width: 34ch;
 }
 
+/* Time and re-hangs: two big numbers side by side, with a thin line between. */
 .win-stats {
   display: flex;
-  gap: var(--space-8);
-  margin: var(--space-2) 0;
+  align-items: stretch;
+  margin: var(--space-1) 0;
 }
 
-.countdown {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
+.win-stats > div {
+  padding: 0 var(--space-6);
 }
 
-.countdown strong {
-  color: var(--color-text);
-  font-variant-numeric: tabular-nums;
+.win-stats > div + div {
+  border-left: 1px solid var(--color-border);
 }
 
 .win-stats dt {
@@ -56,7 +100,18 @@
 
 .win-stats dd {
   margin: 0;
+  font-family: var(--font-display);
   font-size: var(--font-size-xl);
-  font-weight: 800;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.countdown {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.countdown strong {
+  color: var(--color-text);
   font-variant-numeric: tabular-nums;
 }

@@ -13,6 +13,7 @@
 
 import { useState } from 'react'
 import { GameScreen } from './components/GameScreen.tsx'
+import { Logo } from './components/Icons.tsx'
 import { NextPuzzleCountdown } from './components/NextPuzzleCountdown.tsx'
 import { StreakStats } from './components/StreakStats.tsx'
 import { dayNumber, formatShortDate, puzzleForDay } from './game/daily.ts'
@@ -38,17 +39,23 @@ function App() {
   return (
     <main className="app">
       <header className="app-header">
-        <div>
+        <div className="brand">
+          <Logo className="brand-logo" />
           <h1 className="app-title">Counterweight</h1>
-          <p className="app-subtitle">Hang every weight so every bar balances.</p>
         </div>
         {isTutorial ? (
           <button type="button" className="link-button" onClick={finishTutorial}>
             Skip
           </button>
         ) : (
-          <button type="button" className="link-button" onClick={() => setScreen({ kind: 'tutorial', step: 0 })}>
-            How to play
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="How to play"
+            title="How to play"
+            onClick={() => setScreen({ kind: 'tutorial', step: 0 })}
+          >
+            ?
           </button>
         )}
       </header>
@@ -83,11 +90,15 @@ function DailyPuzzle({ day, onPlayNextDay }: { day: number; onPlayNextDay: () =>
   // The calendar date of this day number (day #1 = 23 Nov 2026).
   const date = new Date(2026, 10, 23 + (day - 1))
   const puzzle = { ...base, id: `day-${day}`, title: `#${day} · ${formatShortDate(date)}` }
+  // Difficulty follows the weekday: Monday (1) is the easiest, Sunday (7) the hardest.
+  const level = ((day - 1) % 7) + 1
+  const weekday = date.toLocaleDateString('en-GB', { weekday: 'long' })
 
   return (
     <GameScreen
       key={puzzle.id}
       puzzle={puzzle}
+      subtitle={<Difficulty level={level} label={weekday} />}
       isTutorial={false}
       earlierResult={loadResult(day)}
       onSolved={(result) => saveResult(day, result)}
@@ -98,6 +109,20 @@ function DailyPuzzle({ day, onPlayNextDay }: { day: number; onPlayNextDay: () =>
         </>
       }
     />
+  )
+}
+
+/** "Monday ●○○○○○○": seven dots, filled up to today's difficulty. */
+function Difficulty({ level, label }: { level: number; label: string }) {
+  return (
+    <p className="difficulty" aria-label={`${label}: difficulty ${level} of 7`}>
+      <span aria-hidden="true">{label}</span>
+      <span className="difficulty-pips" aria-hidden="true">
+        {Array.from({ length: 7 }, (_, i) => (
+          <span key={i} className={`difficulty-pip${i < level ? ' is-on' : ''}`} />
+        ))}
+      </span>
+    </p>
   )
 }
 

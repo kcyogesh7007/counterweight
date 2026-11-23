@@ -7,6 +7,7 @@
 import type { PointerEvent } from 'react'
 import { weightRadius } from '../game/layout.ts'
 import { isHung } from '../game/moves.ts'
+import { weightBackground } from './weightStyle.ts'
 import type { Placement } from '../game/types.ts'
 import './WeightTray.css'
 
@@ -58,7 +59,7 @@ export function WeightTray(props: WeightTrayProps) {
           >
             <span
               className="tray-disc"
-              style={{ width: size, height: size, background: `var(--weight-${weight})` }}
+              style={{ width: size, height: size, background: weightBackground(weight) }}
             >
               {weight}
             </span>

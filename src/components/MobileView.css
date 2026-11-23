@@ -26,27 +26,24 @@
   transition: transform var(--tilt-duration) cubic-bezier(0.34, 1.3, 0.64, 1);
 }
 
-.mobile-ceiling {
-  stroke: var(--color-bar);
-  stroke-width: 4;
-  stroke-linecap: round;
-}
+/* NOTE: the wood and brass shading (gradients) are set on the shapes in
+   MobileView.tsx with fill="url(#…)". We must NOT set `fill` for those
+   shapes here, because CSS would override the gradient. */
 
 .mobile-string {
   stroke: var(--color-bar);
-  stroke-width: 1.5;
-  opacity: 0.7;
+  stroke-width: 1.3;
+  opacity: 0.6;
 }
 
-.mobile-bar {
-  stroke: var(--color-bar);
-  stroke-width: 5;
-  stroke-linecap: round;
+/* A thin light line along the top of each beam: polished edge */
+.mobile-bar-shine {
+  fill: rgb(255 255 255 / 0.28);
 }
 
-/* Notch dots are "cut into" the bar, so they use the background colour. */
+/* Notch dots are small holes drilled into the wood */
 .mobile-notch {
-  fill: var(--color-bg);
+  fill: rgb(0 0 0 / 0.32);
 }
 
 .mobile-notch-label {
@@ -56,16 +53,22 @@
   text-anchor: middle;
 }
 
-.mobile-pivot {
-  fill: var(--color-pivot);
-  stroke: var(--color-bar);
-  stroke-width: 1.5;
+/* A thin dark ring around brass parts */
+.mobile-pivot,
+.mobile-rivet {
+  stroke: var(--brass-dark);
+  stroke-width: 0.8;
+}
+
+.mobile-pivot-shine {
+  fill: rgb(255 255 255 / 0.75);
+  pointer-events: none;
 }
 
 .mobile-hook {
   fill: none;
-  stroke: var(--color-hook);
-  stroke-width: 2;
+  stroke: var(--hook-color);
+  stroke-width: 2.2;
   stroke-linecap: round;
 }
 
@@ -125,10 +128,23 @@
 
 .mobile.is-solved .mobile-pivot {
   fill: var(--color-success);
+  stroke: color-mix(in srgb, var(--color-success) 60%, black);
 }
 
 .mobile.is-solved .mobile-hook-group {
   cursor: default;
+}
+
+/* ---------- Weights ---------- */
+
+/* A crisp, slightly darker edge, like the tray beads */
+.mobile-weight-disc {
+  stroke: rgb(0 0 0 / 0.16);
+  stroke-width: 1.2;
+}
+
+.mobile-weight-shine {
+  fill: rgb(255 255 255 / 0.65);
 }
 
 .mobile-weight-label {
@@ -137,4 +153,55 @@
   font-weight: 800;
   text-anchor: middle;
   dominant-baseline: central;
+}
+
+/* ---------- Celebration (fresh solve only) ----------
+   1. The weights give a little bob, just as the bars finish levelling.
+   2. Coloured sparkles burst out from the middle and fade.
+   "Reduce motion" turns both off (see global.css). */
+.mobile.is-celebrating .mobile-weight {
+  transform-box: fill-box;
+  transform-origin: 50% 0%;
+  animation: weight-bob 700ms ease-in-out var(--tilt-duration);
+}
+
+@keyframes weight-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-5px);
+  }
+  60% {
+    transform: translateY(2px);
+  }
+}
+
+.sparkle {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: sparkle-burst 900ms cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+
+@keyframes sparkle-burst {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.2) rotate(0deg);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy)) scale(1.2) rotate(90deg);
+  }
+}
+
+/* With reduced motion, don't flash sparkles at all. */
+@media (prefers-reduced-motion: reduce) {
+  .sparkles {
+    display: none;
+  }
 }

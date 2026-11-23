@@ -13,12 +13,16 @@ import type { Puzzle } from '../game/types.ts'
 import { useDrag } from '../hooks/useDrag.ts'
 import { useGame } from '../hooks/useGame.ts'
 import type { DayResult } from '../storage.ts'
+import { ClockIcon, RehangIcon, ResetIcon } from './Icons.tsx'
 import { MobileView } from './MobileView.tsx'
+import { weightBackground } from './weightStyle.ts'
 import { WeightTray } from './WeightTray.tsx'
 import { WinScreen } from './WinScreen.tsx'
 
 type GameScreenProps = {
   puzzle: Puzzle
+  /** A line under the title, e.g. the difficulty. */
+  subtitle?: ReactNode
   /** Tutorial steps hide the timer and re-hangs, and show `puzzle.intro` / `puzzle.outro`. */
   isTutorial: boolean
   /** If this puzzle was solved before: start solved, showing this result. */
@@ -33,7 +37,7 @@ type GameScreenProps = {
 }
 
 export function GameScreen(props: GameScreenProps) {
-  const { puzzle, isTutorial, earlierResult, winButtonLabel, onWinButton, winExtra, onSolved } = props
+  const { puzzle, subtitle, isTutorial, earlierResult, winButtonLabel, onWinButton, winExtra, onSolved } = props
   const game = useGame(puzzle, earlierResult)
   const { drag, startDrag, shouldIgnoreClick } = useDrag(game.onDrop, !game.isSolved)
   const hungCount = Object.keys(game.placement).length
@@ -64,7 +68,10 @@ export function GameScreen(props: GameScreenProps) {
   return (
     <>
       <section className="play-area" aria-label={puzzle.title}>
-        <h2 className="puzzle-title">{puzzle.title}</h2>
+        <div className="puzzle-heading">
+          <h2 className="puzzle-title">{puzzle.title}</h2>
+          {subtitle}
+        </div>
         {puzzle.intro && <p className="intro">{puzzle.intro}</p>}
         <MobileView
           puzzle={puzzle}
@@ -73,6 +80,8 @@ export function GameScreen(props: GameScreenProps) {
           isDragging={drag !== null}
           dropTargetId={drag?.overHookId ?? null}
           solved={game.isSolved}
+          // Celebrate only a FRESH solve, not when coming back to one solved earlier.
+          celebrate={game.isSolved && !earlierResult}
           onHookTap={onHookTap}
           onWeightPointerDown={(event, hookId, weight) => startDrag(event, weight, hookId)}
         />
@@ -91,7 +100,7 @@ export function GameScreen(props: GameScreenProps) {
           {winExtra}
         </WinScreen>
       ) : (
-        <section className="card tray-card" aria-label="Weights">
+        <section className="tray-panel" aria-label="Weights">
           <p className="hint" aria-live="polite">
             {hint}
           </p>
@@ -106,21 +115,26 @@ export function GameScreen(props: GameScreenProps) {
           <div className="controls">
             {!isTutorial && (
               <>
-                <span className="stat">
-                  Time <strong>{formatTime(game.elapsed)}</strong>
+                <span className="stat" title="Time">
+                  <ClockIcon />
+                  <span className="visually-hidden">Time</span>
+                  <strong>{formatTime(game.elapsed)}</strong>
                 </span>
-                <span className="stat">
-                  Re-hangs <strong>{game.rehangs}</strong>
+                <span className="stat" title="Re-hangs">
+                  <RehangIcon />
+                  <strong>{game.rehangs}</strong> {game.rehangs === 1 ? 're-hang' : 're-hangs'}
                 </span>
               </>
             )}
             <button
               type="button"
-              className="button button-quiet controls-reset"
+              className="reset-button"
+              aria-label="Reset: take every weight down"
+              title="Reset"
               onClick={game.onReset}
               disabled={hungCount === 0}
             >
-              Reset
+              <ResetIcon />
             </button>
           </div>
         </section>
@@ -136,7 +150,7 @@ function DragGhost({ weight, x, y }: { weight: number; x: number; y: number }) {
     <div
       className="drag-ghost"
       aria-hidden="true"
-      style={{ left: x, top: y, width: size, height: size, background: `var(--weight-${weight})` }}
+      style={{ left: x, top: y, width: size, height: size, background: weightBackground(weight) }}
     >
       {weight}
     </div>

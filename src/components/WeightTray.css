@@ -10,10 +10,39 @@
 
 /* Every slot is the same 44px square, so tapping is easy and nothing shifts. */
 .tray-slot {
+  position: relative;
   width: var(--tap-size);
   height: var(--tap-size);
   display: grid;
   place-items: center;
+}
+
+/* A round hollow "carved" into the tray under each bead. When the bead is
+   hanging on the mobile, the empty hollow is what you see. */
+.tray-slot::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  background: rgb(60 40 10 / 0.07);
+  box-shadow:
+    inset 0 2px 4px rgb(60 40 10 / 0.18),
+    0 1px 0 rgb(255 255 255 / 0.6);
+}
+
+@media (prefers-color-scheme: dark) {
+  .tray-slot::before {
+    background: rgb(0 0 0 / 0.22);
+    box-shadow:
+      inset 0 2px 4px rgb(0 0 0 / 0.45),
+      0 1px 0 rgb(255 255 255 / 0.05);
+  }
+}
+
+/* The bead sits on top of its hollow. */
+.tray-disc,
+.tray-slot-empty {
+  position: relative;
 }
 
 .tray-weight {
@@ -25,13 +54,6 @@
   touch-action: none;
 }
 
-/* While a weight is being dragged out, its slot shows a faint copy. */
-.tray-weight.is-lifted .tray-disc {
-  opacity: 0.25;
-  transform: none;
-  box-shadow: none;
-}
-
 .tray-disc {
   display: grid;
   place-items: center;
@@ -39,6 +61,10 @@
   color: var(--weight-text);
   font-weight: 800;
   font-size: 15px;
+  /* A crisp darker edge and a soft shadow below: a bead resting on the panel */
+  box-shadow:
+    inset 0 0 0 1.5px rgb(0 0 0 / 0.12),
+    0 2px 3px rgb(40 25 5 / 0.18);
   transition: transform 150ms ease, box-shadow 150ms ease;
 }
 
@@ -50,11 +76,20 @@
 .tray-weight.is-selected .tray-disc {
   transform: translateY(-4px) scale(1.08);
   box-shadow:
-    0 0 0 3px var(--color-surface),
-    0 0 0 6px var(--color-accent);
+    inset 0 0 0 1.5px rgb(0 0 0 / 0.12),
+    0 0 0 3px var(--color-panel),
+    0 0 0 6px var(--color-accent),
+    0 8px 12px rgb(40 25 5 / 0.25);
 }
 
+/* While a weight is being dragged out, its slot shows a faint copy. */
+.tray-weight.is-lifted .tray-disc {
+  opacity: 0.25;
+  transform: none;
+  box-shadow: none;
+}
+
+/* The empty place a hung weight left behind: just the carved hollow shows. */
 .tray-slot-empty {
   border-radius: 50%;
-  border: 1.5px dashed var(--color-border);
 }

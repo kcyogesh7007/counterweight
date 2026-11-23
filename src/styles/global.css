@@ -2,38 +2,54 @@
   global.css — styles shared by the whole app.
 
   HOW THIS FILE IS ORGANISED
-  1. Design tokens  : named colours, sizes and spacing (CSS "custom properties").
+  1. Design tokens  : named colours, fonts, sizes and spacing (CSS "custom properties").
   2. Dark mode      : the same token names with darker values.
   3. Base reset     : removes odd browser defaults so every phone looks the same.
-  4. App layout     : the centred, mobile-first column the game lives in.
-  5. Small helpers  : reusable classes (buttons, screen-reader-only text).
+  4. App layout     : the full-height, mobile-first column the game lives in.
+  5. Header         : logo, title, help button.
+  6. Game screen    : puzzle heading, tutorial tip, tray panel, controls.
+  7. Small helpers  : buttons, focus ring, screen-reader-only text, reduced motion.
 
   A "custom property" looks like  --color-bg: #fff;
   and is used like                 background: var(--color-bg);
   Changing a token in one place changes it everywhere.
+
+  STYLE: "warm paper" — cream paper, ink-black lines, brass details, like a
+  well-printed puzzle book.
 */
 
 /* ---------- 1. Design tokens (light mode = default) ---------- */
 :root {
   /* Surfaces */
-  --color-bg: #f6f3ee;          /* warm paper background */
-  --color-surface: #ffffff;     /* cards, tray */
-  --color-border: #e4ded4;
+  --color-bg: #f4efe6;          /* cream paper */
+  --color-surface: #fffdf8;     /* cards (win card) */
+  --color-panel: #ebe3d4;       /* the tray panel, a shade darker than the paper */
+  --color-border: #ddd3c2;
 
   /* Text */
-  --color-text: #1f1d1a;
-  --color-text-muted: #6b655c;
+  --color-text: #1f1c18;        /* ink */
+  --color-text-muted: #675f53;
 
-  /* Mobile drawing (used by the SVG in later steps) */
-  --color-bar: #2b2926;         /* bars and strings */
-  --color-pivot: #c9a227;       /* brass-coloured pivot dots */
-  --color-hook: #8a8378;        /* empty hooks */
-  --color-notch: #6f685e;       /* notch numbers (dark enough to read at 12px) */
+  /* Mobile drawing */
+  --color-bar: #27231e;         /* strings, logo */
+  --color-pivot: #c39a2b;       /* brass (logo, flat uses) */
+  --color-hook: #877e70;        /* empty hook outlines */
+  --color-notch: #6a6256;       /* notch numbers (dark enough to read at 12px) */
+  /* Walnut beams: light top edge -> darker underside */
+  --beam-light: #a7764a;
+  --beam-mid: #7d5432;
+  --beam-dark: #5a3a20;
+  /* Polished brass: pivots, rivets, screws, hooks */
+  --brass-light: #fbe9a8;
+  --brass-mid: #d1a640;
+  --brass-dark: #8f6a1c;
+  --shadow-color: #3c2a0a;
+  --hook-color: #8f6a1c;        /* deep brass: clear against the cream page */
 
   /* Accent + feedback */
-  --color-accent: #3566cc;      /* selected weight ring, primary button, links */
+  --color-accent: #2f5ea8;      /* ink blue: selected weight ring, buttons, links */
   --color-accent-text: #ffffff;
-  --color-success: #2e9e6a;     /* "balanced!" moment */
+  --color-success: #2b8a5c;     /* "balanced!" moment */
 
   /* Weight colours: one per number 1–10 (flat, friendly, distinct).
      Every one keeps the dark number readable (contrast 4.5 : 1 or more). */
@@ -47,28 +63,35 @@
   --weight-8: #5bb85c;
   --weight-9: #a4b83a;
   --weight-10: #a88a7e;
-  --weight-text: #1f1d1a;       /* dark numbers stay readable on every weight colour */
+  --weight-text: #1f1c18;       /* dark numbers stay readable on every weight colour */
 
-  /* Typography — system fonts load instantly and look native on each phone */
+  /* Typography.
+     Body text uses the phone's own font (loads instantly, looks native).
+     Titles and big numbers use Fraunces, a friendly serif bundled with the
+     game (see main.tsx), with Georgia as a backup while it loads. */
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Fraunces Variable", Georgia, "Times New Roman", serif;
   --font-size-sm: 0.875rem;     /* 14px */
   --font-size-md: 1rem;         /* 16px */
   --font-size-lg: 1.25rem;      /* 20px */
   --font-size-xl: 1.75rem;      /* 28px */
+  --font-size-2xl: 2.25rem;     /* 36px */
 
   /* Spacing scale (multiples of 4px) */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;              /* standard side gutter on phones */
+  --space-5: 20px;
   --space-6: 24px;
   --space-8: 32px;
 
   /* Shapes */
-  --radius-sm: 8px;
-  --radius-md: 14px;
+  --radius-sm: 10px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
   --radius-full: 999px;
-  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.06), 0 4px 12px rgb(0 0 0 / 0.06);
+  --shadow-card: 0 1px 2px rgb(60 40 10 / 0.06), 0 8px 24px rgb(60 40 10 / 0.08);
 
   /* Minimum finger-friendly tap size (Apple & Google both recommend ~44px) */
   --tap-size: 44px;
@@ -76,33 +99,44 @@
   /* Widest the game column may get on desktop */
   --max-width: 520px;
 
-  /* Animation speed for bar tilts (used in Step 6) */
+  /* Animation speed for bar tilts */
   --tilt-duration: 550ms;
 
   color-scheme: light;
 }
 
 /* ---------- 2. Dark mode ----------
-   Follows the phone/computer's own dark-mode setting automatically. */
+   Follows the phone/computer's own dark-mode setting automatically.
+   A warm dark brown-black, so it still feels like the same game. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-bg: #16171a;
-    --color-surface: #212328;
-    --color-border: #33363d;
+    --color-bg: #1a1815;
+    --color-surface: #24211d;
+    --color-panel: #2b2823;
+    --color-border: #3a3630;
 
-    --color-text: #f1efe9;
-    --color-text-muted: #a29d94;
+    --color-text: #f2ede4;
+    --color-text-muted: #aaa194;
 
-    --color-bar: #e8e4dc;
-    --color-pivot: #e0b93b;
-    --color-hook: #8f8a82;
-    --color-notch: #8f8a82;
+    --color-bar: #ece5d8;
+    --color-pivot: #ddb54a;
+    --color-hook: #918878;
+    --color-notch: #9d9486;
+    /* Lighter maple beams show up well on the dark background */
+    --beam-light: #e2bd86;
+    --beam-mid: #c0915a;
+    --beam-dark: #8e6436;
+    --brass-light: #fff1bf;
+    --brass-mid: #e0b955;
+    --brass-dark: #9a7424;
+    --shadow-color: #000000;
+    --hook-color: #e0b955;
 
-    --color-accent: #6b97f0;
-    --color-accent-text: #0e1320;
-    --color-success: #4cc28a;
+    --color-accent: #7ea6ec;
+    --color-accent-text: #10172a;
+    --color-success: #5cc493;
 
-    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 12px rgb(0 0 0 / 0.3);
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
 
     color-scheme: dark;
   }
@@ -126,7 +160,10 @@ body {
 body {
   min-height: 100vh;
   min-height: 100dvh; /* "dynamic" height: correct on phones with sliding address bars */
-  background: var(--color-bg);
+  /* Paper, with a very soft light glow at the top */
+  background:
+    radial-gradient(ellipse 120% 60% at 50% 0%, rgb(255 255 255 / 0.55), transparent 70%),
+    var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-sans);
   font-size: var(--font-size-md);
@@ -139,6 +176,41 @@ body {
   -webkit-tap-highlight-color: transparent;
   /* Never let the page scroll sideways on a phone */
   overflow-x: hidden;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background:
+      radial-gradient(ellipse 120% 60% at 50% 0%, rgb(255 240 210 / 0.05), transparent 70%),
+      var(--color-bg);
+  }
+}
+
+/* Paper grain: a very faint noise texture over the whole page, made by an
+   SVG "turbulence" filter (no image file needed). pointer-events: none means
+   it never gets in the way of taps. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.22;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.4  0 0 0 0 0.3  0 0 0 0 0.15  0 0 0 0.45 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+@media (prefers-color-scheme: dark) {
+  body::before {
+    opacity: 0.2;
+    mix-blend-mode: screen;
+  }
+}
+
+/* Everything else sits above the grain. */
+#root {
+  position: relative;
+  z-index: 1;
 }
 
 h1,
@@ -165,7 +237,10 @@ svg {
 }
 
 /* ---------- 4. App layout ----------
-   Mobile first: on a phone the column fills the screen with a 16px gutter.
+   Mobile first: the column fills the whole screen height.
+     header   (top)
+     puzzle   (takes all the spare space, mobile centred in it)
+     tray     (bottom, near your thumbs)
    On wider screens it stops growing at --max-width and sits in the middle. */
 #root {
   min-height: 100vh;
@@ -177,27 +252,77 @@ svg {
 .app {
   width: 100%;
   max-width: var(--max-width);
-  padding: var(--space-4);
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  /* Keep clear of the notch / home bar on modern phones */
+  padding-bottom: max(var(--space-4), env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--space-4);
 }
 
-/* Desktop: a little more breathing room at the top. */
 @media (min-width: 768px) {
   .app {
-    padding-top: var(--space-8);
+    padding-top: var(--space-6);
+    padding-bottom: var(--space-8);
   }
 }
 
+/* ---------- 5. Header ---------- */
+
 .app-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
 }
 
-/* A text-style button, e.g. "How to play" / "Skip" in the header. */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.brand-logo {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+}
+
+.app-title {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+/* Round "?" button (How to play) */
+.icon-button {
+  width: var(--tap-size);
+  height: var(--tap-size);
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  margin-right: calc(-1 * var(--space-1));
+  border: 1.5px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-surface);
+  box-shadow: 0 2px 6px rgb(60 40 10 / 0.1);
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-size: var(--font-size-lg);
+  font-weight: 650;
+  cursor: pointer;
+  transition: transform 120ms ease, border-color 120ms ease;
+}
+
+.icon-button:active {
+  transform: scale(0.94);
+}
+
+/* A text-style button, e.g. "Skip" in the header during the tutorial. */
 .link-button {
   flex-shrink: 0;
   min-height: var(--tap-size);
@@ -211,85 +336,113 @@ svg {
   cursor: pointer;
 }
 
-.app-title {
-  font-size: var(--font-size-xl);
-  font-weight: 800;
-  letter-spacing: -0.02em;
+/* ---------- 6. Game screen ---------- */
+
+/* The puzzle area grows to fill spare space, with the mobile centred in it. */
+.play-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-3);
+  /* A soft spotlight behind the mobile, like a display in a shop window */
+  background: radial-gradient(ellipse 75% 55% at 50% 58%, rgb(255 255 255 / 0.6), rgb(255 255 255 / 0) 72%);
 }
 
-.app-subtitle {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
+@media (prefers-color-scheme: dark) {
+  .play-area {
+    background: radial-gradient(ellipse 75% 55% at 50% 58%, rgb(255 225 170 / 0.07), rgb(255 225 170 / 0) 72%);
+  }
 }
 
-.puzzle-title {
-  font-size: var(--font-size-sm);
-  font-weight: 700;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+.puzzle-heading {
   text-align: center;
 }
 
-.card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
-  padding: var(--space-4);
-}
-
-/* ---------- 5. Small helpers ---------- */
-
-.button {
-  min-height: var(--tap-size);
-  padding: 0 var(--space-6);
-  border: none;
-  border-radius: var(--radius-full);
-  background: var(--color-accent);
-  color: var(--color-accent-text);
-  font-weight: 700;
-  cursor: pointer;
-  transition: transform 120ms ease;
-}
-
-.button:active {
-  transform: scale(0.97);
-}
-
-/* A softer button for less important actions, like Reset. */
-.button-quiet {
-  background: transparent;
-  color: var(--color-text);
-  border: 1.5px solid var(--color-border);
-}
-
-.button:disabled {
-  opacity: 0.4;
-  cursor: default;
-  transform: none;
-}
-
-/* ---------- Game screen ---------- */
-
-.play-area {
+/* The title with a short gold line on each side:  ——  #1 · Mon 23 Nov  —— */
+.puzzle-title {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  font-family: var(--font-display);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
-/* Tutorial instruction, shown above the mobile. */
+.puzzle-title::before,
+.puzzle-title::after {
+  content: '';
+  width: 28px;
+  height: 1.5px;
+  border-radius: 1px;
+  background: linear-gradient(to right, transparent, var(--brass-mid));
+}
+
+.puzzle-title::after {
+  background: linear-gradient(to left, transparent, var(--brass-mid));
+}
+
+/* "Monday · ●○○○○○○" */
+.difficulty {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.difficulty-pips {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.difficulty-pip {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-notch);
+}
+
+.difficulty-pip.is-on {
+  background: var(--color-notch);
+}
+
+/* Tutorial instruction: a soft "tip" box above the mobile. */
 .intro {
+  max-width: 36ch;
+  margin: 0 auto;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--color-panel);
   text-align: center;
   font-size: var(--font-size-md);
-  max-width: 34ch;
-  margin: 0 auto;
 }
 
-.tray-card {
+/* The tray: a soft panel near the bottom of the screen. */
+.tray-panel {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  /* Slightly lighter at the top, a fine light edge, and a soft shadow: a raised wooden tray */
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-panel) 80%, white), var(--color-panel));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.55),
+    0 1px 2px rgb(60 40 10 / 0.08),
+    0 10px 28px rgb(60 40 10 / 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  .tray-panel {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--color-panel) 96%, white), var(--color-panel));
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.06),
+      0 10px 28px rgb(0 0 0 / 0.35);
+  }
 }
 
 .hint {
@@ -303,6 +456,56 @@ svg {
   display: flex;
   align-items: center;
   gap: var(--space-4);
+  min-height: var(--tap-size);
+}
+
+.stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.stat svg {
+  width: 16px;
+  height: 16px;
+}
+
+.stat strong {
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Reset: a small round icon button on the right. */
+.reset-button {
+  margin-left: auto;
+  width: var(--tap-size);
+  height: var(--tap-size);
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.5) inset, 0 2px 6px rgb(60 40 10 / 0.14);
+  cursor: pointer;
+  transition: transform 120ms ease, opacity 120ms ease;
+}
+
+.reset-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.reset-button:active {
+  transform: rotate(-40deg) scale(0.94);
+}
+
+.reset-button:disabled {
+  opacity: 0.35;
+  cursor: default;
+  transform: none;
 }
 
 /* The weight following the pointer while dragging. "position: fixed" places it
@@ -318,22 +521,39 @@ svg {
   color: var(--weight-text);
   font-weight: 800;
   font-size: 15px;
-  box-shadow: 0 6px 16px rgb(0 0 0 / 0.25);
+  box-shadow:
+    inset 0 0 0 1.5px rgb(0 0 0 / 0.12),
+    0 8px 18px rgb(40 25 5 / 0.3);
 }
 
-/* Keep Reset on the right even when it's alone (tutorial has no stats). */
-.controls-reset {
-  margin-left: auto;
+/* ---------- 7. Small helpers ---------- */
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-5);
 }
 
-.stat {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
+.button {
+  min-height: var(--tap-size);
+  padding: 0 var(--space-6);
+  border: none;
+  border-radius: var(--radius-full);
+  /* A little depth: lighter at the top, a fine highlight, and a coloured glow */
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-accent) 82%, white), var(--color-accent));
+  color: var(--color-accent-text);
+  font-weight: 700;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.3),
+    0 4px 14px color-mix(in srgb, var(--color-accent) 35%, transparent);
+  cursor: pointer;
+  transition: transform 120ms ease;
 }
 
-.stat strong {
-  color: var(--color-text);
-  font-variant-numeric: tabular-nums;
+.button:active {
+  transform: scale(0.97);
 }
 
 /* Visible focus ring for keyboard users (not shown on finger taps). */
@@ -366,5 +586,6 @@ svg {
   *::after {
     transition-duration: 0ms !important;
     animation-duration: 0ms !important;
+    animation-delay: 0ms !important;
   }
 }

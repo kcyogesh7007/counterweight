@@ -22,7 +22,7 @@
 // TAPPING: each hook has an invisible 44-unit-wide rectangle on top of it.
 // That's what the player actually taps, so small hooks are still easy to hit.
 
-import { useMemo, type KeyboardEvent, type PointerEvent } from 'react'
+import { useId, useMemo, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
 import { collectBars, collectHooks, getTiltDegrees } from '../game/balance.ts'
 import { SIZES, computeLayout, weightRadius, type MobileLayout } from '../game/layout.ts'
 import type { Bar, Hook, MobileNode, Placement, Puzzle } from '../game/types.ts'
@@ -42,6 +42,45 @@ type DrawContext = {
   onHookTap: (hookId: string) => void
   /** Called when the player presses on a hung weight (it may become a drag). */
   onWeightPointerDown: (event: PointerEvent, hookId: string, weight: number) => void
+  /** Unique names of the shading recipes in <defs> (see ShadingDefs). */
+  ids: ShadingIds
+}
+
+type ShadingIds = { wood: string; brass: string; bead: string; shadow: string }
+
+/**
+ * Reusable "shading recipes" for the drawing, defined once inside the SVG:
+ *   wood   – the beam: lighter on top, darker underneath (a rounded look)
+ *   brass  – pivots and rivets: a shiny metal sphere
+ *   bead   – laid OVER a weight's colour: light top-left, shadow bottom-right
+ *   shadow – a soft drop shadow
+ * Colours come from CSS variables, so dark mode changes them automatically.
+ * Each recipe needs a unique id; useId() gives us one that can't clash.
+ */
+function ShadingDefs({ ids }: { ids: ShadingIds }) {
+  return (
+    <defs>
+      <linearGradient id={ids.wood} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" style={{ stopColor: 'var(--beam-light)' }} />
+        <stop offset="55%" style={{ stopColor: 'var(--beam-mid)' }} />
+        <stop offset="100%" style={{ stopColor: 'var(--beam-dark)' }} />
+      </linearGradient>
+      <radialGradient id={ids.brass} cx="35%" cy="30%" r="75%">
+        <stop offset="0%" style={{ stopColor: 'var(--brass-light)' }} />
+        <stop offset="55%" style={{ stopColor: 'var(--brass-mid)' }} />
+        <stop offset="100%" style={{ stopColor: 'var(--brass-dark)' }} />
+      </radialGradient>
+      <radialGradient id={ids.bead} cx="34%" cy="28%" r="80%">
+        <stop offset="0%" stopColor="#fff" stopOpacity="0.55" />
+        <stop offset="22%" stopColor="#fff" stopOpacity="0.12" />
+        <stop offset="60%" stopColor="#fff" stopOpacity="0" />
+        <stop offset="100%" stopColor="#000" stopOpacity="0.18" />
+      </radialGradient>
+      <filter id={ids.shadow} x="-20%" y="-40%" width="140%" height="220%">
+        <feDropShadow dx="0" dy="1.6" stdDeviation="1.4" style={{ floodColor: 'var(--shadow-color)' }} floodOpacity="0.28" />
+      </filter>
+    </defs>
+  )
 }
 
 type MobileViewProps = {
@@ -53,19 +92,24 @@ type MobileViewProps = {
   dropTargetId: string | null
   /** True once every bar balances: pivots turn green and hooks stop responding. */
   solved: boolean
+  /** True to play the "you did it!" sparkle burst (fresh solves only). */
+  celebrate: boolean
   onHookTap: (hookId: string) => void
   onWeightPointerDown: (event: PointerEvent, hookId: string, weight: number) => void
 }
 
 export function MobileView(props: MobileViewProps) {
-  const { puzzle, placement, selected, isDragging, dropTargetId, solved, onHookTap, onWeightPointerDown } = props
+  const { puzzle, placement, selected, isDragging, dropTargetId, solved, celebrate, onHookTap, onWeightPointerDown } = props
   // Only recalculate the layout when the puzzle changes (not on every tap).
   const layout = useMemo(() => computeLayout(puzzle.root), [puzzle])
   const { x, y, width, height } = layout.viewBox
 
   const bars = collectBars(puzzle.root)
   const hookCount = collectHooks(puzzle.root).length
-  const ctx: DrawContext = { layout, placement, dropTargetId, onHookTap, onWeightPointerDown }
+  // useId gives a unique text like ":r1:"; we strip the colons so it's safe inside url(#…).
+  const uid = useId().replace(/:/g, '')
+  const ids: ShadingIds = { wood: `wood${uid}`, brass: `brass${uid}`, bead: `bead${uid}`, shadow: `shadow${uid}` }
+  const ctx: DrawContext = { layout, placement, dropTargetId, onHookTap, onWeightPointerDown, ids }
   const isHolding = selected !== null || isDragging
 
   return (
@@ -79,7 +123,7 @@ export function MobileView(props: MobileViewProps) {
       </ul>
 
       <svg
-        className={`mobile${isHolding ? ' is-holding' : ''}${solved ? ' is-solved' : ''}`}
+        className={`mobile${isHolding ? ' is-holding' : ''}${solved ? ' is-solved' : ''}${celebrate ? ' is-celebrating' : ''}`}
         viewBox={`${x} ${y} ${width} ${height}`}
         // Never draw bigger than 1.5× natural size, so small mobiles (like the
         // tutorial) don't balloon to fill the screen.
@@ -87,9 +131,14 @@ export function MobileView(props: MobileViewProps) {
         role="group"
         aria-label={`A mobile with ${bars.length} bars and ${hookCount} hooks`}
       >
-        {/* The ceiling the whole mobile hangs from */}
-        <line className="mobile-ceiling" x1={-24} y1={0} x2={24} y2={0} />
+        <ShadingDefs ids={ids} />
+
+        {/* The ceiling mount the whole mobile hangs from: a wooden plate with two brass screws */}
+        <rect className="mobile-ceiling" x={-32} y={-8} width={64} height={11} rx={5.5} fill={`url(#${ids.wood})`} filter={`url(#${ids.shadow})`} />
+        <circle cx={-21} cy={-2.5} r={2.2} fill={`url(#${ids.brass})`} />
+        <circle cx={21} cy={-2.5} r={2.2} fill={`url(#${ids.brass})`} />
         <NodeView node={puzzle.root} ctx={ctx} />
+        {celebrate && <Sparkles x={x} y={y} width={width} height={height} />}
       </svg>
     </>
   )
@@ -117,6 +166,10 @@ function BarView({ bar, ctx }: { bar: Bar; ctx: DrawContext }) {
   // Degrees to rotate: positive = right side dips, negative = left side dips, 0 = level.
   const tilt = getTiltDegrees(bar, ctx.placement)
 
+  // The beam is a rounded rectangle from the left tip to the right tip.
+  const beam = SIZES.beamThickness
+  const ids = ctx.ids
+
   return (
     <g>
       {/* String from the hanging point down to this bar's pivot */}
@@ -124,27 +177,49 @@ function BarView({ bar, ctx }: { bar: Bar; ctx: DrawContext }) {
 
       {/* Everything below is positioned relative to the pivot, then tilted */}
       <g className="mobile-swing" style={{ transform: `translate(0px, ${SIZES.barString}px) rotate(${tilt}deg)` }}>
-        {/* The bar itself */}
-        <line className="mobile-bar" x1={leftEnd} y1={0} x2={rightEnd} y2={0} />
+        {/* The beam: wood shading + soft shadow, then a thin light edge along the top */}
+        <rect
+          className="mobile-bar"
+          x={leftEnd - beam / 2}
+          y={-beam / 2}
+          width={rightEnd - leftEnd + beam}
+          height={beam}
+          rx={beam / 2}
+          fill={`url(#${ids.wood})`}
+          filter={`url(#${ids.shadow})`}
+        />
+        <rect
+          className="mobile-bar-shine"
+          x={leftEnd}
+          y={-beam / 2 + 1.2}
+          width={rightEnd - leftEnd}
+          height={1.6}
+          rx={0.8}
+        />
 
-        {/* Notch marks: one small dot per notch on each arm */}
-        {notchPositions(bar.leftNotches, -unit).map((nx) => (
-          <circle key={`l${nx}`} className="mobile-notch" cx={nx} cy={0} r={1.6} />
+        {/* Notch marks: one small inset dot per notch on each arm */}
+        {notchPositions(bar.leftNotches - 1, -unit).map((nx) => (
+          <circle key={`l${nx}`} className="mobile-notch" cx={nx} cy={0.5} r={1.5} />
         ))}
-        {notchPositions(bar.rightNotches, unit).map((nx) => (
-          <circle key={`r${nx}`} className="mobile-notch" cx={nx} cy={0} r={1.6} />
+        {notchPositions(bar.rightNotches - 1, unit).map((nx) => (
+          <circle key={`r${nx}`} className="mobile-notch" cx={nx} cy={0.5} r={1.5} />
         ))}
+
+        {/* Brass rivets at both tips, where the strings hang from */}
+        <circle className="mobile-rivet" cx={leftEnd} cy={0} r={2.6} fill={`url(#${ids.brass})`} />
+        <circle className="mobile-rivet" cx={rightEnd} cy={0} r={2.6} fill={`url(#${ids.brass})`} />
 
         {/* Notch numbers, above the middle of each arm */}
-        <text className="mobile-notch-label" x={leftEnd / 2} y={-8}>
+        <text className="mobile-notch-label" x={leftEnd / 2} y={-beam / 2 - 5}>
           {bar.leftNotches}
         </text>
-        <text className="mobile-notch-label" x={rightEnd / 2} y={-8}>
+        <text className="mobile-notch-label" x={rightEnd / 2} y={-beam / 2 - 5}>
           {bar.rightNotches}
         </text>
 
-        {/* The pivot (where this bar hangs from) */}
-        <circle className="mobile-pivot" cx={0} cy={0} r={4.5} />
+        {/* The pivot: a polished brass knob (turns green when solved) */}
+        <circle className="mobile-pivot" cx={0} cy={0} r={6} fill={`url(#${ids.brass})`} filter={`url(#${ids.shadow})`} />
+        <circle className="mobile-pivot-shine" cx={-1.8} cy={-2} r={1.6} />
 
         {/* Children, hanging from each arm's tip. rotate(-tilt) undoes the
             bar's tilt so strings always hang straight down. */}
@@ -192,14 +267,14 @@ function HookView({ hook, ctx }: { hook: Hook; ctx: DrawContext }) {
       onPointerDown={(event) => weight !== undefined && ctx.onWeightPointerDown(event, hook.id, weight)}
     >
       <line className="mobile-string" x1={0} y1={0} x2={0} y2={hookTop} />
-      {/* A small "J" shape: down a little, then curve up to the left */}
+      {/* A small brass "J" hook: down a little, then curve up to the left */}
       <path className="mobile-hook" d={`M 0 ${hookTop} V ${hookBottom - 4} A 4 4 0 0 1 -8 ${hookBottom - 4}`} />
 
       {weight === undefined ? (
         // Empty hook: a dashed circle showing where a weight can go
         <circle className="mobile-empty" cx={0} cy={hookBottom + SIZES.emptyRadius} r={SIZES.emptyRadius} />
       ) : (
-        <WeightShape weight={weight} cx={0} cy={hookBottom + weightRadius(weight)} />
+        <WeightShape weight={weight} cx={0} cy={hookBottom + weightRadius(weight)} ids={ctx.ids} />
       )}
 
       {/* The invisible tap area, drawn last so it sits on top */}
@@ -215,15 +290,58 @@ function HookView({ hook, ctx }: { hook: Hook; ctx: DrawContext }) {
   )
 }
 
-/** A coloured disc with its number. Exported so the tray (Step 5) can reuse it. */
-export function WeightShape({ weight, cx, cy }: { weight: number; cx: number; cy: number }) {
+/** A glossy coloured bead with its number. */
+function WeightShape({ weight, cx, cy, ids }: { weight: number; cx: number; cy: number; ids: ShadingIds }) {
   const r = weightRadius(weight)
   return (
-    <g>
-      <circle cx={cx} cy={cy} r={r} style={{ fill: `var(--weight-${weight})` }} />
+    <g className="mobile-weight">
+      {/* 1. the bead's colour, with a soft shadow underneath */}
+      <circle className="mobile-weight-disc" cx={cx} cy={cy} r={r} style={{ fill: `var(--weight-${weight})` }} filter={`url(#${ids.shadow})`} />
+      {/* 2. light and shade on top, so it looks round */}
+      <circle cx={cx} cy={cy} r={r} fill={`url(#${ids.bead})`} />
+      {/* 3. a crisp little shine near the top-left */}
+      <ellipse className="mobile-weight-shine" cx={cx - r * 0.36} cy={cy - r * 0.45} rx={r * 0.26} ry={r * 0.16} transform={`rotate(-30 ${cx - r * 0.36} ${cy - r * 0.45})`} />
       <text className="mobile-weight-label" x={cx} y={cy}>
         {weight}
       </text>
+    </g>
+  )
+}
+
+/**
+ * The win celebration: little coloured sparkles burst out from the middle of
+ * the mobile and fade. Each sparkle gets its own direction through CSS
+ * variables (--dx, --dy); the animation itself is in MobileView.css.
+ */
+function Sparkles({ x, y, width, height }: { x: number; y: number; width: number; height: number }) {
+  const centreX = x + width / 2
+  const centreY = y + height * 0.42
+  const count = 24
+  // The group sits at the centre; each sparkle starts at (0, 0) inside it and
+  // its CSS animation moves it outwards by (--dx, --dy).
+  return (
+    <g className="sparkles" aria-hidden="true" transform={`translate(${centreX} ${centreY})`}>
+      {Array.from({ length: count }, (_, i) => {
+        const angle = (i / count) * Math.PI * 2
+        const reach = (i % 2 === 0 ? 0.46 : 0.32) // alternate long and short bursts
+        const dx = Math.cos(angle) * width * reach
+        const dy = Math.sin(angle) * height * reach
+        const style = {
+          '--dx': `${dx.toFixed(1)}px`,
+          '--dy': `${dy.toFixed(1)}px`,
+          fill: `var(--weight-${(i % 7) + 1})`,
+          animationDelay: `calc(var(--tilt-duration) + ${(i % 4) * 40}ms)`,
+        } as CSSProperties
+        // A 4-point star, drawn around (0, 0).
+        return (
+          <path
+            key={i}
+            className="sparkle"
+            d="M0 -6 L1.6 -1.6 L6 0 L1.6 1.6 L0 6 L-1.6 1.6 L-6 0 L-1.6 -1.6 Z"
+            style={style}
+          />
+        )
+      })}
     </g>
   )
 }

@@ -20,6 +20,8 @@ export const SIZES = {
   barString: 46,
   /** String from an arm's end down to a hook. */
   hookString: 32,
+  /** How thick each wooden beam is drawn. */
+  beamThickness: 9,
   /** Height of the little "J" hook shape. */
   hookHeight: 9,
   /** Half the width reserved for each hook: 22 each side = 44 wide, a comfortable tap target. */
