@@ -2,6 +2,8 @@
 
 A daily logic puzzle for phones: hang every weight on the mobile so that every bar balances.
 
+**Play it: https://kcyogesh7007.github.io/counterweight/**
+
 A bar balances when **(total weight under the left arm) × (left notches) = (total weight under the right arm) × (right notches)**. Each puzzle uses the weights 1–7 once each, and has exactly one solution.
 
 **One puzzle a day.** Everyone gets the same puzzle on the same day, numbered from **#1 (Mon 23 Nov 2026)**. A new one appears at your local midnight. Puzzles get harder through the week: Monday is the easiest and Sunday the hardest. Once you've solved today's, you see your time, your re-hangs and a countdown to tomorrow.
@@ -34,6 +36,18 @@ npm run dev      # starts the game, open the address it prints (http://localhost
 | `npm run build`       | Type-checks the code and builds the final website into `dist/`  |
 | `npm run preview`     | Serves the built `dist/` folder, to try the final version       |
 | `npm run lint`        | Looks for common code mistakes                                  |
+
+## Publishing an update
+
+The game is hosted free on **GitHub Pages**. Every push to the `main` branch publishes automatically:
+
+```bash
+git add -A
+git commit -m "Describe what you changed"
+git push
+```
+
+GitHub then runs the tests and the puzzle checker, builds the game and publishes it. It takes about a minute. You can watch it under the repository's **Actions** tab. If a test or the checker fails, **nothing is published** and the live game stays as it was. The steps are in `.github/workflows/deploy.yml`.
 
 ## How the code is organised
 
