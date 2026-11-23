@@ -1,0 +1,55 @@
+# deploy.yml — publishes the game to GitHub Pages automatically.
+#
+# Every time code is pushed to the "main" branch, GitHub runs these steps on
+# its own computers:
+#   1. download the code and install the libraries,
+#   2. run the tests and the puzzle checker (if anything fails, nothing is published),
+#   3. build the website into dist/,
+#   4. publish dist/ to GitHub Pages.
+#
+# You can watch it run on GitHub under the repository's "Actions" tab.
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # also allows a manual "Run workflow" button on GitHub
+
+# Permissions GitHub Pages publishing needs.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one publish at a time; a newer push replaces one that's still waiting.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run verify
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

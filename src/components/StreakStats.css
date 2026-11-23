@@ -1,0 +1,31 @@
+/* StreakStats.css — the streak row on the win card. */
+
+.streaks {
+  display: flex;
+  gap: var(--space-3);
+  margin: 0;
+  width: 100%;
+  justify-content: center;
+}
+
+/* Each streak is a small rounded "chip". */
+.streaks > div {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+}
+
+.streaks dt {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.streaks dd {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}

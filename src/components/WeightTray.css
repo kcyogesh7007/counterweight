@@ -1,0 +1,60 @@
+/* WeightTray.css — the tray of weights. */
+
+.tray {
+  user-select: none;
+  -webkit-user-select: none;
+  display: grid;
+  justify-content: center; /* centre the grid of fixed-width columns */
+  gap: var(--space-2) var(--space-3);
+}
+
+/* Every slot is the same 44px square, so tapping is easy and nothing shifts. */
+.tray-slot {
+  width: var(--tap-size);
+  height: var(--tap-size);
+  display: grid;
+  place-items: center;
+}
+
+.tray-weight {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: grab;
+  /* A finger on a weight drags the weight instead of scrolling the page. */
+  touch-action: none;
+}
+
+/* While a weight is being dragged out, its slot shows a faint copy. */
+.tray-weight.is-lifted .tray-disc {
+  opacity: 0.25;
+  transform: none;
+  box-shadow: none;
+}
+
+.tray-disc {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--weight-text);
+  font-weight: 800;
+  font-size: 15px;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.tray-weight:active .tray-disc {
+  transform: scale(0.92);
+}
+
+/* The selected weight lifts up and gets a ring. */
+.tray-weight.is-selected .tray-disc {
+  transform: translateY(-4px) scale(1.08);
+  box-shadow:
+    0 0 0 3px var(--color-surface),
+    0 0 0 6px var(--color-accent);
+}
+
+.tray-slot-empty {
+  border-radius: 50%;
+  border: 1.5px dashed var(--color-border);
+}

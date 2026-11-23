@@ -1,0 +1,41 @@
+[
+  {
+    "id": "tutorial-1",
+    "title": "How to play · 1 of 2",
+    "intro": "A bar balances when weight × notches is the same on both sides. Hang the 1 and the 2 so this bar is level.",
+    "outro": "1 × 2 = 2 × 1. Light weights go far out, heavy weights stay close in.",
+    "weights": [1, 2],
+    "root": {
+      "kind": "bar",
+      "id": "T",
+      "leftNotches": 2,
+      "rightNotches": 1,
+      "left": { "kind": "hook", "id": "left" },
+      "right": { "kind": "hook", "id": "right" }
+    },
+    "solution": { "left": 1, "right": 2 }
+  },
+  {
+    "id": "tutorial-2",
+    "title": "How to play · 2 of 2",
+    "intro": "A bar carries everything hanging below it. Balance the small bar first, then the top one.",
+    "outro": "The small bar holds 2 + 1 = 3, which balances the 3 on the other side. You're ready!",
+    "weights": [1, 2, 3],
+    "root": {
+      "kind": "bar",
+      "id": "TOP",
+      "leftNotches": 1,
+      "rightNotches": 1,
+      "left": { "kind": "hook", "id": "a" },
+      "right": {
+        "kind": "bar",
+        "id": "X",
+        "leftNotches": 1,
+        "rightNotches": 2,
+        "left": { "kind": "hook", "id": "x1" },
+        "right": { "kind": "hook", "id": "x2" }
+      }
+    },
+    "solution": { "a": 3, "x1": 2, "x2": 1 }
+  }
+]

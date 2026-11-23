@@ -1,0 +1,140 @@
+/* MobileView.css — colours and line styles for the SVG mobile.
+   We style SVG with CSS classes (not attributes) so that the colour
+   tokens in global.css, including dark mode, apply automatically. */
+
+.mobile {
+  /* No text selection or long-press menu when tapping fast on a phone */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  width: 100%;
+  height: auto;
+  margin: 0 auto; /* centre it when max-width stops it filling the column */
+  overflow: visible;
+}
+
+/* ---------- Tilting ----------
+   Groups that rotate when a bar tilts. transform-origin 0 0 makes them turn
+   around their own (0, 0) point, which is the pivot or the arm's tip.
+   The transition makes the change smooth. A bar and its children use the
+   same duration and easing, so the "rotate back" on each child cancels the
+   bar's rotation at every moment, and strings stay vertical while swinging.
+   (Users with "reduce motion" switched on get no animation: see global.css.) */
+.mobile-swing {
+  transform-box: view-box;
+  transform-origin: 0 0;
+  transition: transform var(--tilt-duration) cubic-bezier(0.34, 1.3, 0.64, 1);
+}
+
+.mobile-ceiling {
+  stroke: var(--color-bar);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.mobile-string {
+  stroke: var(--color-bar);
+  stroke-width: 1.5;
+  opacity: 0.7;
+}
+
+.mobile-bar {
+  stroke: var(--color-bar);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+/* Notch dots are "cut into" the bar, so they use the background colour. */
+.mobile-notch {
+  fill: var(--color-bg);
+}
+
+.mobile-notch-label {
+  fill: var(--color-notch);
+  font-size: 12px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+.mobile-pivot {
+  fill: var(--color-pivot);
+  stroke: var(--color-bar);
+  stroke-width: 1.5;
+}
+
+.mobile-hook {
+  fill: none;
+  stroke: var(--color-hook);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.mobile-empty {
+  fill: none;
+  stroke: var(--color-hook);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+}
+
+/* ---------- Tapping ---------- */
+
+.mobile-hook-group {
+  cursor: pointer;
+  outline: none; /* we draw our own focus ring on the tap area below */
+}
+
+/* Invisible, but still catches taps (fill must not be "none" for that). */
+.mobile-tap-area {
+  fill: transparent;
+  stroke: none;
+}
+
+/* Keyboard focus: show the tap area as a ring. */
+.mobile-hook-group:focus-visible .mobile-tap-area {
+  stroke: var(--color-accent);
+  stroke-width: 2;
+}
+
+/* A hung weight can be dragged: stop the page scrolling when a finger
+   presses on it, so the finger moves the weight instead. */
+.mobile-hook-group.has-weight {
+  touch-action: none;
+  cursor: grab;
+}
+
+/* The hook under a dragged weight: "let go here". */
+.mobile-hook-group.is-drop-target .mobile-tap-area {
+  fill: color-mix(in srgb, var(--color-accent) 14%, transparent);
+  stroke: var(--color-accent);
+  stroke-width: 2.5;
+}
+
+/* While the player holds a weight, empty hooks light up to say "put it here". */
+.mobile.is-holding .mobile-empty {
+  stroke: var(--color-accent);
+  stroke-width: 2;
+  fill: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+
+/* ---------- Solved ----------
+   Every pivot turns green once the whole mobile balances, and hooks stop
+   looking tappable. The colour change waits for the bars to finish swinging. */
+.mobile-pivot {
+  transition: fill 300ms ease var(--tilt-duration);
+}
+
+.mobile.is-solved .mobile-pivot {
+  fill: var(--color-success);
+}
+
+.mobile.is-solved .mobile-hook-group {
+  cursor: default;
+}
+
+.mobile-weight-label {
+  fill: var(--weight-text);
+  font-size: 13px;
+  font-weight: 800;
+  text-anchor: middle;
+  dominant-baseline: central;
+}

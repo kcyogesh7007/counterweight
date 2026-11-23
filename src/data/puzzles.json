@@ -1,0 +1,260 @@
+[
+  {
+    "id": "puzzle-1",
+    "title": "Puzzle 1",
+    "weights": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "root": {
+      "kind": "bar",
+      "id": "TOP",
+      "leftNotches": 1,
+      "rightNotches": 1,
+      "left": {
+        "kind": "bar",
+        "id": "A",
+        "leftNotches": 1,
+        "rightNotches": 1,
+        "left": {
+          "kind": "hook",
+          "id": "a"
+        },
+        "right": {
+          "kind": "bar",
+          "id": "C",
+          "leftNotches": 4,
+          "rightNotches": 3,
+          "left": {
+            "kind": "hook",
+            "id": "c1"
+          },
+          "right": {
+            "kind": "hook",
+            "id": "c2"
+          }
+        }
+      },
+      "right": {
+        "kind": "bar",
+        "id": "B",
+        "leftNotches": 3,
+        "rightNotches": 4,
+        "left": {
+          "kind": "bar",
+          "id": "D",
+          "leftNotches": 1,
+          "rightNotches": 3,
+          "left": {
+            "kind": "hook",
+            "id": "d1"
+          },
+          "right": {
+            "kind": "hook",
+            "id": "d2"
+          }
+        },
+        "right": {
+          "kind": "bar",
+          "id": "E",
+          "leftNotches": 5,
+          "rightNotches": 1,
+          "left": {
+            "kind": "hook",
+            "id": "e1"
+          },
+          "right": {
+            "kind": "hook",
+            "id": "e2"
+          }
+        }
+      }
+    },
+    "solution": {
+      "a": 7,
+      "c1": 3,
+      "c2": 4,
+      "d1": 6,
+      "d2": 2,
+      "e1": 1,
+      "e2": 5
+    }
+  },
+  {
+    "id": "puzzle-2",
+    "title": "Puzzle 2",
+    "weights": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "root": {
+      "kind": "bar",
+      "id": "TOP",
+      "leftNotches": 3,
+      "rightNotches": 1,
+      "left": {
+        "kind": "hook",
+        "id": "a"
+      },
+      "right": {
+        "kind": "bar",
+        "id": "A",
+        "leftNotches": 3,
+        "rightNotches": 4,
+        "left": {
+          "kind": "bar",
+          "id": "B",
+          "leftNotches": 1,
+          "rightNotches": 1,
+          "left": {
+            "kind": "hook",
+            "id": "b"
+          },
+          "right": {
+            "kind": "bar",
+            "id": "D",
+            "leftNotches": 1,
+            "rightNotches": 5,
+            "left": {
+              "kind": "hook",
+              "id": "c"
+            },
+            "right": {
+              "kind": "hook",
+              "id": "d"
+            }
+          }
+        },
+        "right": {
+          "kind": "bar",
+          "id": "C",
+          "leftNotches": 5,
+          "rightNotches": 4,
+          "left": {
+            "kind": "hook",
+            "id": "e"
+          },
+          "right": {
+            "kind": "bar",
+            "id": "E",
+            "leftNotches": 2,
+            "rightNotches": 3,
+            "left": {
+              "kind": "hook",
+              "id": "f"
+            },
+            "right": {
+              "kind": "hook",
+              "id": "g"
+            }
+          }
+        }
+      }
+    },
+    "solution": {
+      "a": 7,
+      "b": 6,
+      "c": 5,
+      "d": 1,
+      "e": 4,
+      "f": 3,
+      "g": 2
+    }
+  },
+  {
+    "id": "puzzle-3",
+    "title": "Puzzle 3",
+    "weights": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "root": {
+      "kind": "bar",
+      "id": "TOP",
+      "leftNotches": 1,
+      "rightNotches": 1,
+      "left": {
+        "kind": "bar",
+        "id": "A",
+        "leftNotches": 4,
+        "rightNotches": 3,
+        "left": {
+          "kind": "hook",
+          "id": "a"
+        },
+        "right": {
+          "kind": "bar",
+          "id": "C",
+          "leftNotches": 3,
+          "rightNotches": 5,
+          "left": {
+            "kind": "hook",
+            "id": "b"
+          },
+          "right": {
+            "kind": "bar",
+            "id": "E",
+            "leftNotches": 1,
+            "rightNotches": 2,
+            "left": {
+              "kind": "hook",
+              "id": "c"
+            },
+            "right": {
+              "kind": "hook",
+              "id": "d"
+            }
+          }
+        }
+      },
+      "right": {
+        "kind": "bar",
+        "id": "B",
+        "leftNotches": 1,
+        "rightNotches": 1,
+        "left": {
+          "kind": "hook",
+          "id": "e"
+        },
+        "right": {
+          "kind": "bar",
+          "id": "D",
+          "leftNotches": 4,
+          "rightNotches": 3,
+          "left": {
+            "kind": "hook",
+            "id": "f"
+          },
+          "right": {
+            "kind": "hook",
+            "id": "g"
+          }
+        }
+      }
+    },
+    "solution": {
+      "a": 6,
+      "b": 5,
+      "c": 2,
+      "d": 1,
+      "e": 7,
+      "f": 3,
+      "g": 4
+    }
+  }
+]
