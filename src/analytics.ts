@@ -9,14 +9,14 @@
 // no times, nothing personal.
 //
 // HOW TO TURN IT ON
-// 1. Sign up (free) at https://www.goatcounter.com and pick a code, e.g. "counterweight".
+// 1. Sign up (free) at https://www.goatcounter.com and pick a code (this game uses "counterweight-puzzle").
 // 2. Put that code in GOATCOUNTER_CODE below, then publish.
 // While the code is empty, NOTHING is loaded or sent.
 //
 // It never counts while you're testing on your own computer (localhost).
 
 /** Your GoatCounter code, e.g. 'counterweight' (empty = counting switched off). */
-export const GOATCOUNTER_CODE = ''
+export const GOATCOUNTER_CODE = 'counterweight-puzzle'
 
 /** The game events we count. Each is just a name. */
 export type GameEvent =
