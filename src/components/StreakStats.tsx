@@ -2,13 +2,13 @@
 
 import { dayNumber } from '../game/daily.ts'
 import { computeStreaks } from '../game/streaks.ts'
-import { loadAllResults } from '../storage.ts'
+import { onTimeSolvedDays } from '../storage.ts'
 import './StreakStats.css'
 
 /** @param day the puzzle just solved (it counts even if saving was blocked) */
 export function StreakStats({ day }: { day: number }) {
-  const solvedDays = Object.keys(loadAllResults()).map(Number)
-  const { current, best } = computeStreaks([...solvedDays, day], dayNumber(new Date()))
+  // Only puzzles solved on their own day count (not ones played late from Past puzzles).
+  const { current, best } = computeStreaks([...onTimeSolvedDays(), day], dayNumber(new Date()))
 
   return (
     <dl className="streaks">

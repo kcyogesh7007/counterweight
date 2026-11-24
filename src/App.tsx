@@ -7,6 +7,7 @@
 //   levels    the level map (60 levels, stars)
 //   level     playing one level
 //   practice  choose Easy / Medium / Hard, then endless puzzles made on the spot
+//   archive   past daily puzzles (playing them late never changes your streak)
 //
 // Flow:
 //   first visit:  How to play 1 -> How to play 2 -> today's puzzle
@@ -21,6 +22,7 @@ import { useState } from 'react'
 import { DailyPuzzle } from './components/DailyPuzzle.tsx'
 import { GameScreen } from './components/GameScreen.tsx'
 import { HomeScreen } from './components/HomeScreen.tsx'
+import { ArchiveScreen } from './components/ArchiveScreen.tsx'
 import { BackIcon, Logo } from './components/Icons.tsx'
 import { LevelPuzzle } from './components/LevelPuzzle.tsx'
 import { LevelsScreen } from './components/LevelsScreen.tsx'
@@ -42,6 +44,8 @@ type Screen =
   | { kind: 'level'; level: number } // playing one level
   | { kind: 'practice' } // choose a Practice difficulty
   | { kind: 'practicePuzzle'; difficulty: PracticeDifficulty; seed: number } // one Practice puzzle
+  | { kind: 'archive' } // the list of past daily puzzles
+  | { kind: 'archiveDay'; day: number } // playing one past daily puzzle
 
 const HOME: Screen = { kind: 'home' }
 
@@ -96,10 +100,15 @@ function App() {
           onPlayDaily={() => go({ kind: 'daily' })}
           onOpenLevels={() => go({ kind: 'levels' })}
           onOpenPractice={() => go({ kind: 'practice' })}
+          onOpenArchive={() => go({ kind: 'archive' })}
         />
       )}
 
       {screen.kind === 'levels' && <LevelsScreen onPlay={(level) => go({ kind: 'level', level })} />}
+
+      {screen.kind === 'archive' && <ArchiveScreen today={day} onPlay={(pastDay) => go({ kind: 'archiveDay', day: pastDay })} />}
+
+      {screen.kind === 'archiveDay' && <DailyPuzzle key={screen.day} day={screen.day} mode="past" onDone={back} />}
 
       {screen.kind === 'practice' && (
         <PracticeScreen onPlay={(difficulty) => go({ kind: 'practicePuzzle', difficulty, seed: newSeed() })} />
@@ -126,7 +135,7 @@ function App() {
       )}
 
       {screen.kind === 'daily' && (
-        <DailyPuzzle day={day} onPlayNextDay={() => setDay(dayNumber(new Date()))} onHome={back} />
+        <DailyPuzzle day={day} mode="today" onPlayNextDay={() => setDay(dayNumber(new Date()))} onDone={back} />
       )}
 
       {screen.kind === 'tutorial' && (
@@ -147,9 +156,13 @@ function isKnownScreen(screen: Screen): boolean {
     case 'daily':
     case 'levels':
     case 'practice':
+    case 'archive':
       return true
     case 'practicePuzzle':
       return PRACTICE_DIFFICULTIES.includes(screen.difficulty) && Number.isInteger(screen.seed)
+    case 'archiveDay':
+      // Only days before today (today's puzzle is played from home)
+      return Number.isInteger(screen.day) && screen.day >= 1 && screen.day < dayNumber(new Date())
     case 'tutorial':
       return TUTORIAL_PUZZLES[screen.step] !== undefined
     case 'level':

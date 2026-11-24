@@ -13,7 +13,7 @@ import { levelTotals } from '../game/levels.ts'
 import { formatTime } from '../game/moves.ts'
 import { LEVEL_PUZZLES } from '../game/puzzles.ts'
 import { computeStreaks } from '../game/streaks.ts'
-import { loadAllResults, loadInProgress, loadLevelStars, loadPracticeCounts } from '../storage.ts'
+import { loadAllResults, loadInProgress, loadLevelStars, loadPracticeCounts, onTimeSolvedDays } from '../storage.ts'
 import { Difficulty } from './Difficulty.tsx'
 import { ArchiveIcon, ChevronIcon, FlameIcon, LevelsIcon, Logo, PracticeIcon } from './Icons.tsx'
 import './HomeScreen.css'
@@ -23,15 +23,20 @@ type Props = {
   onPlayDaily: () => void
   onOpenLevels: () => void
   onOpenPractice: () => void
+  onOpenArchive: () => void
 }
 
-export function HomeScreen({ day, onPlayDaily, onOpenLevels, onOpenPractice }: Props) {
+export function HomeScreen({ day, onPlayDaily, onOpenLevels, onOpenPractice, onOpenArchive }: Props) {
   const levelProgress = levelTotals(loadLevelStars())
   const practiceSolved = Object.values(loadPracticeCounts()).reduce((sum, n) => sum + n, 0)
   const results = loadAllResults()
+  // Past puzzles: every day before today that you haven't solved yet
+  const pastUnsolved = Array.from({ length: Math.max(0, day - 1) }, (_, i) => i + 1).filter((d) => !results[d]).length
+  const archiveText =
+    day <= 1 ? 'Play any daily puzzle you missed.' : pastUnsolved === 0 ? 'All past puzzles solved!' : `${pastUnsolved} past ${pastUnsolved === 1 ? 'puzzle' : 'puzzles'} to play`
   const todayResult = results[day]
   const inProgress = todayResult ? null : loadInProgress(day)
-  const streak = computeStreaks(Object.keys(results).map(Number), day).current
+  const streak = computeStreaks(onTimeSolvedDays(), day).current
   const date = dayDate(day)
   const weekday = date.toLocaleDateString('en-GB', { weekday: 'long' })
 
@@ -71,7 +76,7 @@ export function HomeScreen({ day, onPlayDaily, onOpenLevels, onOpenPractice }: P
         </span>
       </button>
 
-      {/* Other ways to play (Past puzzles comes in the next step) */}
+      {/* Other ways to play */}
       <ul className="home-list">
         <ModeCard
           icon={<LevelsIcon />}
@@ -89,7 +94,7 @@ export function HomeScreen({ day, onPlayDaily, onOpenLevels, onOpenPractice }: P
           text={practiceSolved === 0 ? 'Endless puzzles: easy, medium or hard.' : `Endless puzzles · ${practiceSolved} solved`}
           onOpen={onOpenPractice}
         />
-        <ModeCard icon={<ArchiveIcon />} title="Past puzzles" text="Play any daily puzzle you missed." />
+        <ModeCard icon={<ArchiveIcon />} title="Past puzzles" text={archiveText} onOpen={onOpenArchive} />
       </ul>
     </section>
   )

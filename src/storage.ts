@@ -10,6 +10,7 @@
 //   counterweight:tutorialDone  "yes" once the tutorial is finished or skipped
 //   counterweight:results       your result for each day you solved, e.g.
 //                               {"1":{"elapsed":134000,"rehangs":2}}
+//                               ("late":true = solved later from Past puzzles)
 //   counterweight:inProgress    today's half-finished puzzle (deleted once solved), e.g.
 //                               {"day":1,"placement":{"a":7},"rehangs":0,"elapsed":42000}
 
@@ -82,6 +83,8 @@ export type DayResult = {
   /** Time taken, in milliseconds. */
   elapsed: number
   rehangs: number
+  /** True if it was solved later, from Past puzzles (doesn't count for streaks). */
+  late?: boolean
 }
 
 /** Has this player finished or skipped the tutorial before? */
@@ -108,8 +111,16 @@ function isDayResult(value: unknown): value is DayResult {
   const v = value as Record<string, unknown>
   return (
     typeof v.elapsed === 'number' && Number.isFinite(v.elapsed) && v.elapsed >= 0 &&
-    typeof v.rehangs === 'number' && Number.isInteger(v.rehangs) && v.rehangs >= 0
+    typeof v.rehangs === 'number' && Number.isInteger(v.rehangs) && v.rehangs >= 0 &&
+    (v.late === undefined || typeof v.late === 'boolean')
   )
+}
+
+/** Day numbers solved ON their own day (the ones that count for streaks). */
+export function onTimeSolvedDays(): number[] {
+  return Object.entries(loadAllResults())
+    .filter(([, result]) => !result.late)
+    .map(([day]) => Number(day))
 }
 
 /** Every saved result: day number -> result. Damaged entries are skipped. */
@@ -184,7 +195,7 @@ export function saveResult(day: number, result: DayResult): void {
   try {
     const all = loadAllResults()
     if (all[day]) return
-    all[day] = { elapsed: result.elapsed, rehangs: result.rehangs }
+    all[day] = { elapsed: result.elapsed, rehangs: result.rehangs, ...(result.late ? { late: true } : {}) }
     localStorage.setItem(RESULTS_KEY, JSON.stringify(all))
   } catch {
     // Storage blocked: the game still works, it just won't remember.

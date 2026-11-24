@@ -1,0 +1,136 @@
+/* ArchiveScreen.css — the list of past daily puzzles. */
+
+.archive {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.archive-top {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.archive-title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-xl);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--gold-light);
+}
+
+.archive-text {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.archive-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* One past day: a glass row */
+.archive-row {
+  width: 100%;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, rgb(44 37 29 / 0.7), rgb(22 18 14 / 0.8));
+  box-shadow: 0 6px 16px rgb(0 0 0 / 0.35);
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    border-color 240ms ease,
+    box-shadow 240ms ease;
+}
+
+@media (hover: hover) {
+  .archive-row:hover {
+    border-color: rgb(233 200 121 / 0.5);
+    box-shadow: 0 6px 16px rgb(0 0 0 / 0.35), 0 0 18px rgb(240 195 110 / 0.1);
+  }
+}
+
+.archive-row:active {
+  transform: scale(0.985);
+}
+
+/* The puzzle number in a round gold-rimmed badge */
+.archive-number {
+  flex-shrink: 0;
+  min-width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  padding: 0 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-panel);
+  box-shadow: inset 0 2px 6px rgb(0 0 0 / 0.6), 0 0 0 1px var(--color-border);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--gold-light);
+}
+
+.archive-row.is-solved .archive-number {
+  box-shadow: inset 0 2px 6px rgb(0 0 0 / 0.6), 0 0 0 1px var(--gold-mid), 0 0 10px rgb(240 195 110 / 0.25);
+}
+
+.archive-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.archive-date {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+
+.archive-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+}
+
+.archive-status {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
+.archive-row.is-solved .archive-status {
+  color: var(--color-success);
+}
+
+.archive-chevron {
+  color: var(--gold);
+}
+
+.archive-chevron svg {
+  width: 20px;
+  height: 20px;
+}
+
+.archive-tick {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgb(95 211 166 / 0.15);
+  color: var(--color-success);
+  font-weight: 700;
+}

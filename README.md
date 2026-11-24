@@ -113,6 +113,10 @@ Endless puzzles made on the phone, on the spot, by the same generator the build 
 
 Each puzzle comes from a random **seed** number: the same seed always makes the same puzzle, in every browser, so a reload keeps your puzzle. Every practice puzzle has exactly one solution and fits a 360px phone (checked by `src/game/practice.test.ts`). The game counts how many you've solved at each difficulty. Practice never affects the daily streak.
 
+## Past puzzles
+
+Every earlier daily puzzle is listed (newest first) with its difficulty and whether you solved it. You can play any of them. A puzzle solved on a later day is saved as **"solved late"** and **never changes your streak**: only daily puzzles solved on their own day count. Half-finished past puzzles aren't saved, so they can't overwrite today's progress.
+
 ## The daily puzzles
 
 `src/data/daily.json` holds **365 puzzles**: Day #1 (23 Nov 2026) to Day #365. After that the list starts again from the top. To make it, run:

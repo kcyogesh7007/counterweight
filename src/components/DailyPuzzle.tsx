@@ -1,6 +1,12 @@
 // DailyPuzzle.tsx — the puzzle for one day, e.g. "#1 · Mon 23 Nov".
-// Loads and saves your progress and result for that day, and shows your
-// streaks and the countdown to tomorrow once it's solved.
+//
+// Two ways to play it:
+//   today  (from home)          progress is saved as you play, and once solved
+//                               you see your streaks and the countdown to tomorrow.
+//   past   (from Past puzzles)  an earlier day's puzzle. The result is saved but
+//                               marked "late", so it never changes your streak.
+//                               Half-finished past puzzles aren't saved (so they
+//                               can't overwrite today's saved progress).
 
 import { dailyDifficulty, dayDate, formatShortDate, puzzleForDay } from '../game/daily.ts'
 import { DAILY_PUZZLES } from '../game/puzzles.ts'
@@ -12,39 +18,50 @@ import { StreakStats } from './StreakStats.tsx'
 
 type Props = {
   day: number
-  /** After midnight, the countdown's "Play #N" button. */
-  onPlayNextDay: () => void
-  /** "More puzzles" on the win card. */
-  onHome: () => void
+  mode: 'today' | 'past'
+  /** Today only: after midnight, the countdown's "Play #N" button. */
+  onPlayNextDay?: () => void
+  /** The win card's button: "More puzzles" (today) or "More past puzzles" (past). */
+  onDone: () => void
 }
 
-export function DailyPuzzle({ day, onPlayNextDay, onHome }: Props) {
+export function DailyPuzzle({ day, mode, onPlayNextDay, onDone }: Props) {
   const base = puzzleForDay(day, DAILY_PUZZLES)
   const date = dayDate(day)
   const puzzle = { ...base, id: `day-${day}`, title: `#${day} · ${formatShortDate(date)}` }
   const weekday = date.toLocaleDateString('en-GB', { weekday: 'long' })
+  const isToday = mode === 'today'
+  const earlier = loadResult(day)
 
   return (
     <GameScreen
       key={puzzle.id}
       puzzle={puzzle}
-      subtitle={<Difficulty level={dailyDifficulty(day)} label={weekday} />}
+      subtitle={<Difficulty level={dailyDifficulty(day)} label={isToday ? weekday : `${weekday} · past puzzle`} />}
       isTutorial={false}
-      earlierResult={loadResult(day)}
-      // Half-finished? Carry on where you left off. Saved as you play.
-      resumeFrom={loadInProgress(day)}
-      onProgress={(progress) => saveInProgress({ day, ...progress })}
+      earlierResult={earlier}
+      // Today only: carry on where you left off, saved as you play.
+      resumeFrom={isToday ? loadInProgress(day) : null}
+      onProgress={isToday ? (progress) => saveInProgress({ day, ...progress }) : undefined}
       onSolved={(result) => {
-        saveResult(day, result)
-        clearInProgress()
+        saveResult(day, { ...result, late: !isToday })
+        if (isToday) clearInProgress()
       }}
-      winButtonLabel="More puzzles"
-      onWinButton={onHome}
+      winButtonLabel={isToday ? 'More puzzles' : 'More past puzzles'}
+      onWinButton={onDone}
       winExtra={
-        <>
-          <StreakStats day={day} />
-          <NextPuzzleCountdown nextDay={day + 1} onPlayNext={onPlayNextDay} />
-        </>
+        isToday ? (
+          <>
+            <StreakStats day={day} />
+            <NextPuzzleCountdown nextDay={day + 1} onPlayNext={onPlayNextDay ?? onDone} />
+          </>
+        ) : (
+          <p className="win-subtitle">
+            {earlier && !earlier.late
+              ? 'You solved this one on its day.'
+              : "Played late, so it doesn't change your streak."}
+          </p>
+        )
       }
     />
   )
