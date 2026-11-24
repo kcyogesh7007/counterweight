@@ -260,3 +260,16 @@
   text-transform: uppercase;
   white-space: nowrap;
 }
+
+/* The small privacy note at the bottom of home (only while counting is on) */
+.home-privacy {
+  margin-top: auto;
+  padding-top: var(--space-4);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.home-privacy a {
+  color: var(--color-accent);
+}

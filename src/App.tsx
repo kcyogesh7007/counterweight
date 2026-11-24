@@ -3,14 +3,15 @@
 // Screens:
 //   home      the starting page: today's puzzle + other ways to play
 //   daily     today's puzzle (everyone gets the same one; new at local midnight)
-//   tutorial  "How to play", 2 small puzzles
+//   tutorialIntro  "How to play" picture cards (3 short cards)
+//   tutorial  then 3 small practice puzzles, with a live balance meter
 //   levels    the level map (60 levels, stars)
 //   level     playing one level
 //   practice  choose Easy / Medium / Hard, then endless puzzles made on the spot
 //   archive   past daily puzzles (playing them late never changes your streak)
 //
 // Flow:
-//   first visit:  How to play 1 -> How to play 2 -> today's puzzle
+//   first visit:  picture cards -> practice puzzles 1, 2, 3 -> today's puzzle
 //   later visits: home -> today's puzzle (or another mode)
 // The ← button (and the phone's own back gesture) returns to the previous
 // screen; see hooks/useScreens.ts.
@@ -19,26 +20,30 @@
 // done, your result for each day you solved, and today's half-finished puzzle.
 
 import { useState } from 'react'
+import { countEvent } from './analytics.ts'
 import { DailyPuzzle } from './components/DailyPuzzle.tsx'
 import { GameScreen } from './components/GameScreen.tsx'
 import { HomeScreen } from './components/HomeScreen.tsx'
 import { ArchiveScreen } from './components/ArchiveScreen.tsx'
-import { BackIcon, Logo } from './components/Icons.tsx'
+import { BackIcon, Logo, SoundOffIcon, SoundOnIcon } from './components/Icons.tsx'
 import { LevelPuzzle } from './components/LevelPuzzle.tsx'
 import { LevelsScreen } from './components/LevelsScreen.tsx'
 import { PracticePuzzle } from './components/PracticePuzzle.tsx'
 import { PracticeScreen } from './components/PracticeScreen.tsx'
+import { TutorialIntro } from './components/TutorialIntro.tsx'
 import { dayNumber } from './game/daily.ts'
 import { isUnlocked } from './game/levels.ts'
 import { newSeed, PRACTICE_DIFFICULTIES, type PracticeDifficulty } from './game/practice.ts'
 import { LEVEL_PUZZLES, TUTORIAL_PUZZLES } from './game/puzzles.ts'
 import { useScreens } from './hooks/useScreens.ts'
+import { isSoundOn, playSound, setSoundOn } from './sound.ts'
 import { hasSeenTutorial, loadLevelStars, markTutorialSeen } from './storage.ts'
 
 /** Every screen the game can show. */
 type Screen =
   | { kind: 'home' }
   | { kind: 'daily' }
+  | { kind: 'tutorialIntro' } // "How to play" picture cards
   | { kind: 'tutorial'; step: number }
   | { kind: 'levels' } // the level map
   | { kind: 'level'; level: number } // playing one level
@@ -50,13 +55,22 @@ type Screen =
 const HOME: Screen = { kind: 'home' }
 
 function App() {
-  const screens = useScreens<Screen>(() => (hasSeenTutorial() ? HOME : { kind: 'tutorial', step: 0 }), HOME)
+  const screens = useScreens<Screen>(() => (hasSeenTutorial() ? HOME : { kind: 'tutorialIntro' }), HOME)
   const { go, replace, back } = screens
   // Safety net: a screen restored after a reload that no longer makes sense shows home.
   const screen = isKnownScreen(screens.screen) ? screens.screen : HOME
   // Today's puzzle number. Worked out when the game opens; the countdown's
   // "Play #N" button moves it on after midnight.
   const [day, setDay] = useState(() => dayNumber(new Date()))
+  const [soundOn, setSoundOnState] = useState(isSoundOn)
+
+  function toggleSound() {
+    setSoundOn(!soundOn)
+    setSoundOnState(!soundOn)
+    if (!soundOn) playSound('pick') // a little "yes, sound is on"
+  }
+
+  const inTutorial = screen.kind === 'tutorial' || screen.kind === 'tutorialIntro'
 
   function finishTutorial() {
     markTutorialSeen()
@@ -69,7 +83,7 @@ function App() {
     <main className="app">
       <header className="app-header">
         <div className="brand">
-          {screen.kind !== 'home' && screen.kind !== 'tutorial' && (
+          {screen.kind !== 'home' && !inTutorial && (
             <button type="button" className="back-button" aria-label="Back" title="Back" onClick={back}>
               <BackIcon />
             </button>
@@ -77,20 +91,35 @@ function App() {
           <Logo className="brand-logo" />
           <h1 className="app-title">Counterweight</h1>
         </div>
-        {screen.kind === 'tutorial' ? (
+        {inTutorial ? (
           <button type="button" className="link-button" onClick={finishTutorial}>
             Skip
           </button>
         ) : (
-          <button
-            type="button"
-            className="icon-button"
-            aria-label="How to play"
-            title="How to play"
-            onClick={() => go({ kind: 'tutorial', step: 0 })}
-          >
-            ?
-          </button>
+          <div className="header-actions">
+            {/* Sound on/off lives on home (other screens need the room for ←) */}
+            {screen.kind === 'home' && (
+              <button
+                type="button"
+                className="icon-button"
+                aria-label="Sound"
+                aria-pressed={soundOn}
+                title={soundOn ? 'Sound on' : 'Sound off'}
+                onClick={toggleSound}
+              >
+                {soundOn ? <SoundOnIcon /> : <SoundOffIcon />}
+              </button>
+            )}
+            <button
+              type="button"
+              className="icon-button"
+              aria-label="How to play"
+              title="How to play"
+              onClick={() => go({ kind: 'tutorialIntro' })}
+            >
+              ?
+            </button>
+          </div>
         )}
       </header>
 
@@ -138,12 +167,21 @@ function App() {
         <DailyPuzzle day={day} mode="today" onPlayNextDay={() => setDay(dayNumber(new Date()))} onDone={back} />
       )}
 
+      {screen.kind === 'tutorialIntro' && (
+        // The cards lead into the practice puzzles (replacing, so Back leaves the tutorial).
+        <TutorialIntro onDone={() => replace({ kind: 'tutorial', step: 0 })} />
+      )}
+
       {screen.kind === 'tutorial' && (
         <TutorialStep
           step={screen.step}
           // Moving between tutorial steps doesn't add history: Back leaves the tutorial.
           onNext={(next) => replace({ kind: 'tutorial', step: next })}
-          onDone={finishTutorial}
+          // Finishing the tutorial (not skipping it) is counted.
+          onDone={() => {
+            countEvent('tutorial-finished')
+            finishTutorial()
+          }}
         />
       )}
     </main>
@@ -157,6 +195,7 @@ function isKnownScreen(screen: Screen): boolean {
     case 'levels':
     case 'practice':
     case 'archive':
+    case 'tutorialIntro':
       return true
     case 'practicePuzzle':
       return PRACTICE_DIFFICULTIES.includes(screen.difficulty) && Number.isInteger(screen.seed)

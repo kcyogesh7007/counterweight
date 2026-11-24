@@ -1,0 +1,93 @@
+/* BalanceMeter.css — the tutorial's live maths helper. */
+
+.meter {
+  margin: 0 auto;
+  width: 100%;
+  max-width: 420px;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgb(20 16 12 / 0.7);
+}
+
+.meter-title {
+  margin-bottom: var(--space-2);
+  text-align: center;
+  color: var(--gold);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.meter-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* One bar: name | left = n  vs  right = n | state */
+.meter-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    'name state'
+    'sum sum';
+  gap: 2px var(--space-2);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: rgb(255 230 170 / 0.04);
+  font-size: var(--font-size-sm);
+  transition: background 300ms ease;
+}
+
+.meter-name {
+  grid-area: name;
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.meter-state {
+  grid-area: state;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.meter-sum {
+  grid-area: sum;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.meter-side strong {
+  color: var(--color-text);
+}
+
+.meter-vs {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+/* Level: green; tipping: amber; empty: quiet */
+.meter-row.is-level {
+  background: rgb(95 211 166 / 0.1);
+}
+
+.meter-row.is-level .meter-state {
+  color: var(--color-success);
+}
+
+.meter-row.is-tipping .meter-state {
+  color: #f0b45a;
+}
+
+.meter-row.is-empty .meter-state {
+  color: var(--color-text-muted);
+  font-weight: 500;
+}

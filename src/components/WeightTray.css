@@ -137,3 +137,24 @@
 .tray-slot-empty {
   border-radius: 50%;
 }
+
+/* Tutorial, before the first move: the weights gently pulse to say "start
+   here". Each one is a little later than the last, like a wave.
+   (Reduced motion turns this off; see global.css.) */
+.is-guiding .tray-weight .tray-disc {
+  animation: guide-pulse 1.6s ease-in-out infinite;
+}
+.is-guiding .tray-weight:nth-child(2) .tray-disc { animation-delay: 0.2s; }
+.is-guiding .tray-weight:nth-child(3) .tray-disc { animation-delay: 0.4s; }
+.is-guiding .tray-weight:nth-child(4) .tray-disc { animation-delay: 0.6s; }
+
+@keyframes guide-pulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: none;
+  }
+  50% {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 8px rgb(233 200 121 / 0.75));
+  }
+}

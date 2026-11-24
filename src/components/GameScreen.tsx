@@ -7,13 +7,16 @@
 // if it was solved before, straight on the solved view).
 
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { countEvent } from '../analytics.ts'
 import { findHint, hintMessage, MAX_HINTS, type Hint } from '../game/hints.ts'
 import { weightRadius } from '../game/layout.ts'
 import { formatTime, type SavedProgress } from '../game/moves.ts'
 import type { Puzzle } from '../game/types.ts'
 import { useDrag } from '../hooks/useDrag.ts'
 import { useGame } from '../hooks/useGame.ts'
+import { playSound } from '../sound.ts'
 import type { DayResult } from '../storage.ts'
+import { BalanceMeter } from './BalanceMeter.tsx'
 import { BulbIcon, ClockIcon, RehangIcon, ResetIcon } from './Icons.tsx'
 import { MobileView } from './MobileView.tsx'
 import { weightBackground } from './weightStyle.ts'
@@ -54,7 +57,9 @@ export function GameScreen(props: GameScreenProps) {
   // EXACTLY ONCE. A ref remembers that we've already told it, and holds the
   // latest onSolved function without making the effect run again.
   const { isSolved, elapsed, rehangs, hintsUsed } = game
-  const reported = useRef(false)
+  // (A puzzle that opens already solved, e.g. coming back to today's, was
+  // reported when it was first solved, so it isn't reported again.)
+  const reported = useRef(Boolean(earlierResult))
   const onSolvedRef = useRef(onSolved)
   useEffect(() => {
     onSolvedRef.current = onSolved
@@ -78,8 +83,32 @@ export function GameScreen(props: GameScreenProps) {
     const found = findHint(puzzle, game.placement)
     if (!found || hintsLeft <= 0) return
     game.onTakeHint()
+    countEvent('hint-used')
+    playSound('hint')
     setShownHint(found)
   }
+
+  // ---------- Sounds ----------
+  // Each sound follows a CHANGE in the game (see sound.ts). Refs remember the
+  // previous state, so opening or resuming a puzzle makes no sound.
+  const before = useRef({ placement: game.placement, selected: game.selected, dragging: false, solved: game.isSolved })
+  const dragging = drag !== null
+  const resetting = useRef(false) // set by the Reset button, so it always whooshes
+  useEffect(() => {
+    const prev = before.current
+    before.current = { placement: game.placement, selected: game.selected, dragging, solved: game.isSolved }
+    if (game.placement !== prev.placement) {
+      const was = Object.keys(prev.placement).length
+      const now = Object.keys(game.placement).length
+      if (resetting.current) playSound('reset')
+      else if (now >= was) playSound('hang') // a new weight, or a swap
+      else playSound('remove')
+      resetting.current = false
+    } else if ((game.selected !== null && game.selected !== prev.selected) || (dragging && !prev.dragging)) {
+      playSound('pick')
+    }
+    if (game.isSolved && !prev.solved) playSound('win') // after the last clink
+  }, [game.placement, game.selected, game.isSolved, dragging])
 
   // While a weight is being dragged OFF a hook, draw that hook as empty
   // (the weight is "in the player's hand", following the pointer), and let
@@ -119,6 +148,8 @@ export function GameScreen(props: GameScreenProps) {
           onHookTap={onHookTap}
           onWeightPointerDown={(event, hookId, weight) => startDrag(event, weight, hookId)}
         />
+        {/* Tutorial only: the live maths for every bar */}
+        {isTutorial && <BalanceMeter puzzle={puzzle} placement={shownPlacement} />}
       </section>
 
       {/* The weight in the player's "hand" while dragging */}
@@ -138,14 +169,17 @@ export function GameScreen(props: GameScreenProps) {
           <p className={`hint${shownHint ? ' is-hint' : ''}`} aria-live="polite">
             {hint}
           </p>
-          <WeightTray
-            weights={puzzle.weights}
-            placement={game.placement}
-            selected={game.selected}
-            liftedWeight={drag?.from === 'tray' ? drag.weight : null}
-            onWeightTap={onWeightTap}
-            onWeightPointerDown={(event, weight) => startDrag(event, weight, 'tray')}
-          />
+          {/* Tutorial, nothing done yet: the weights gently pulse to say "start here" */}
+          <div className={isTutorial && hungCount === 0 && game.selected === null && !drag ? 'is-guiding' : undefined}>
+            <WeightTray
+              weights={puzzle.weights}
+              placement={game.placement}
+              selected={game.selected}
+              liftedWeight={drag?.from === 'tray' ? drag.weight : null}
+              onWeightTap={onWeightTap}
+              onWeightPointerDown={(event, weight) => startDrag(event, weight, 'tray')}
+            />
+          </div>
           <div className="controls">
             {!isTutorial && (
               <>
@@ -180,7 +214,10 @@ export function GameScreen(props: GameScreenProps) {
               className="reset-button"
               aria-label="Reset: take every weight down"
               title="Reset"
-              onClick={game.onReset}
+              onClick={() => {
+                resetting.current = true
+                game.onReset()
+              }}
               disabled={hungCount === 0}
             >
               <ResetIcon />

@@ -3,6 +3,7 @@
 // the same difficulty) or "Change difficulty" (back to the picker).
 
 import { useMemo } from 'react'
+import { countEvent } from '../analytics.ts'
 import { makePracticePuzzle, type PracticeDifficulty } from '../game/practice.ts'
 import { addPracticeSolve } from '../storage.ts'
 import { GameScreen } from './GameScreen.tsx'
@@ -26,7 +27,10 @@ export function PracticePuzzle({ difficulty, seed, onNext, onChangeDifficulty }:
         <p className="difficulty">{puzzle.weights.length} weights</p>
       }
       isTutorial={false}
-      onSolved={() => addPracticeSolve(difficulty)}
+      onSolved={() => {
+        addPracticeSolve(difficulty)
+        countEvent('practice-solved')
+      }}
       winButtonLabel="Next puzzle"
       onWinButton={onNext}
       winExtra={

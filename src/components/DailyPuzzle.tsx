@@ -9,6 +9,7 @@
 //                               can't overwrite today's saved progress).
 
 import { dailyDifficulty, dayDate, formatShortDate, puzzleForDay } from '../game/daily.ts'
+import { countEvent } from '../analytics.ts'
 import { DAILY_PUZZLES } from '../game/puzzles.ts'
 import { clearInProgress, loadInProgress, loadResult, saveInProgress, saveResult } from '../storage.ts'
 import { Difficulty } from './Difficulty.tsx'
@@ -45,6 +46,7 @@ export function DailyPuzzle({ day, mode, onPlayNextDay, onDone }: Props) {
       onProgress={isToday ? (progress) => saveInProgress({ day, ...progress }) : undefined}
       onSolved={(result) => {
         saveResult(day, { ...result, late: !isToday })
+        countEvent(isToday ? 'daily-solved' : 'past-puzzle-solved')
         if (isToday) clearInProgress()
       }}
       winButtonLabel={isToday ? 'More puzzles' : 'More past puzzles'}

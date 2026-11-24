@@ -49,6 +49,8 @@ export type Puzzle = {
   intro?: string
   /** Tutorial only: the explanation shown after it's solved. */
   outro?: string
+  /** Tutorial only: friendly names for the bars, for the balance meter (bar id -> name). */
+  barNames?: Record<string, string>
   /** The weights in the tray, e.g. [1, 2, 3, 4, 5, 6, 7]. Each is used once. */
   weights: number[]
   /** The top bar of the mobile. */

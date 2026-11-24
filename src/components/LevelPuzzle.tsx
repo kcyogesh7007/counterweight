@@ -5,6 +5,7 @@
 // Your best stars are saved; replaying can only ever improve them.
 
 import { useState } from 'react'
+import { countEvent } from '../analytics.ts'
 import { starsFor } from '../game/levels.ts'
 import { LEVEL_PUZZLES } from '../game/puzzles.ts'
 import { loadLevelStars, saveLevelStars } from '../storage.ts'
@@ -62,7 +63,10 @@ export function LevelPuzzle({ level, onNextLevel, onMap }: Props) {
       }
       isTutorial={false}
       hideWinMessage
-      onSolved={(result) => saveLevelStars(level, levelStars(result))}
+      onSolved={(result) => {
+        saveLevelStars(level, levelStars(result))
+        countEvent('level-solved')
+      }}
       winExtra={(result) => {
         const stars = levelStars(result)
         return (

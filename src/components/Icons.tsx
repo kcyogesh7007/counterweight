@@ -127,3 +127,24 @@ export function ResetIcon() {
     </svg>
   )
 }
+
+/** A speaker with sound waves: sound is on. */
+export function SoundOnIcon() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3.5 7.8h2.8L10 4.8v10.4l-3.7-3H3.5Z" />
+      <path d="M13 7.4a3.6 3.6 0 0 1 0 5.2" />
+      <path d="M15.2 5.2a6.8 6.8 0 0 1 0 9.6" />
+    </svg>
+  )
+}
+
+/** A speaker with a cross: sound is off. */
+export function SoundOffIcon() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3.5 7.8h2.8L10 4.8v10.4l-3.7-3H3.5Z" />
+      <path d="m13 8 4 4M17 8l-4 4" />
+    </svg>
+  )
+}

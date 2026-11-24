@@ -87,6 +87,22 @@ scripts/
 └─ verify-puzzles.ts        the puzzle checker
 ```
 
+## How to play (tutorial)
+
+New players (and anyone who taps **?**) first see three picture cards
+(`src/components/TutorialIntro.tsx`): make every bar level, further out pulls
+harder (weight × notches), and a bar carries everything below it. Then come
+three small practice puzzles (`src/data/tutorial.json`). During those, a live
+**balance meter** (`src/components/BalanceMeter.tsx`) shows each bar's sum, and
+the weights pulse until the first tap.
+
+## Sound
+
+Little sound effects (pick, hang, remove, hint, reset, win) are made by the
+browser itself with the Web Audio API: there are no sound files. See
+`src/sound.ts`. The speaker button on the home screen turns sound on or off,
+and the choice is remembered in this browser (`counterweight:sound`).
+
 ## Hints
 
 Every puzzle (except the tutorial) has **one hint**, from the lightbulb button in the tray. The hint picks the most useful nudge (see `src/game/hints.ts`):
@@ -158,6 +174,16 @@ How `build-daily` works:
 - no two puzzles in a file are the same.
 
 **Why 7 weights?** With weights 1…N and arms of at most 6 notches, no mobile with 8 or more weights can balance. A hook holding 7, for example, needs an arm 7 notches long unless the thing beside it weighs a multiple of 7. More weights also wouldn't fit 44px apart on a phone. So harder puzzles come from deeper shapes and fewer easy starting points, not from more weights.
+
+## Visitor counting (privacy-friendly)
+
+The game can count visits and a few anonymous game events with [GoatCounter](https://www.goatcounter.com): no cookies, no IP addresses, nothing personal. It is **switched off until you set your code** in `src/analytics.ts`:
+
+1. Sign up (free) at goatcounter.com and choose a code, e.g. `counterweight`.
+2. Set `GOATCOUNTER_CODE = 'counterweight'` in `src/analytics.ts`, then publish.
+3. See your stats at `https://counterweight.goatcounter.com`.
+
+Counted events: `tutorial-finished`, `daily-solved`, `past-puzzle-solved`, `level-solved`, `practice-solved`, `hint-used`. Nothing is counted on localhost, and a short privacy note appears on the home screen while counting is on.
 
 ## Accessibility
 

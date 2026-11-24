@@ -15,6 +15,7 @@ import { LEVEL_PUZZLES } from '../game/puzzles.ts'
 import { computeStreaks } from '../game/streaks.ts'
 import { loadAllResults, loadInProgress, loadLevelStars, loadPracticeCounts, onTimeSolvedDays } from '../storage.ts'
 import { Difficulty } from './Difficulty.tsx'
+import { GOATCOUNTER_CODE } from '../analytics.ts'
 import { ArchiveIcon, ChevronIcon, FlameIcon, LevelsIcon, Logo, PracticeIcon } from './Icons.tsx'
 import './HomeScreen.css'
 
@@ -96,6 +97,17 @@ export function HomeScreen({ day, onPlayDaily, onOpenLevels, onOpenPractice, onO
         />
         <ModeCard icon={<ArchiveIcon />} title="Past puzzles" text={archiveText} onOpen={onOpenArchive} />
       </ul>
+
+      {/* Only shown while visitor counting is switched on (see analytics.ts) */}
+      {GOATCOUNTER_CODE && (
+        <p className="home-privacy">
+          Anonymous visit counting by{' '}
+          <a href="https://www.goatcounter.com/help/privacy" target="_blank" rel="noreferrer">
+            GoatCounter
+          </a>
+          : no cookies, no personal data.
+        </p>
+      )}
     </section>
   )
 }

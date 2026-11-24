@@ -9,6 +9,10 @@ import { createRoot } from 'react-dom/client'
 import '@fontsource-variable/fraunces'
 import './styles/global.css'
 import App from './App.tsx'
+import { startAnalytics } from './analytics.ts'
+
+// Anonymous visit counting (switched off until a GoatCounter code is set in analytics.ts).
+startAnalytics()
 
 createRoot(document.getElementById('root')!).render(
   // StrictMode adds extra checks during development only; it has no effect in the final build.

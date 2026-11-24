@@ -47,6 +47,8 @@ type DrawContext = {
   ids: ShadingIds
   /** The hint being shown (a hook or bar to highlight), or null. */
   hint: Hint | null
+  /** True for a picture only (e.g. the How-to-play cards): hooks can't be tapped or focused. */
+  readOnly: boolean
 }
 
 type ShadingIds = { wood: string; brass: string; bead: string; shadow: string }
@@ -100,12 +102,14 @@ type MobileViewProps = {
   celebrate: boolean
   /** A hint to show on the drawing (see game/hints.ts), or null. */
   hint?: Hint | null
+  /** A picture only: nothing can be tapped (used on the How-to-play cards). */
+  readOnly?: boolean
   onHookTap: (hookId: string) => void
   onWeightPointerDown: (event: PointerEvent, hookId: string, weight: number) => void
 }
 
 export function MobileView(props: MobileViewProps) {
-  const { puzzle, placement, selected, isDragging, dropTargetId, solved, celebrate, hint = null, onHookTap, onWeightPointerDown } = props
+  const { puzzle, placement, selected, isDragging, dropTargetId, solved, celebrate, hint = null, readOnly = false, onHookTap, onWeightPointerDown } = props
   // Only recalculate the layout when the puzzle changes (not on every tap).
   const layout = useMemo(() => computeLayout(puzzle.root), [puzzle])
   const { x, y, width, height } = layout.viewBox
@@ -120,7 +124,7 @@ export function MobileView(props: MobileViewProps) {
     bead: `bead${uid}`,
     shadow: `shadow${uid}`,
   }
-  const ctx: DrawContext = { layout, placement, dropTargetId, onHookTap, onWeightPointerDown, ids, hint }
+  const ctx: DrawContext = { layout, placement, dropTargetId, onHookTap, onWeightPointerDown, ids, hint, readOnly }
   const isHolding = selected !== null || isDragging
 
   return (
@@ -284,12 +288,13 @@ function HookView({ hook, ctx }: { hook: Hook; ctx: DrawContext }) {
     <g
       className={classes.join(' ')}
       data-hook-id={hook.id}
-      role="button"
-      tabIndex={0}
-      aria-label={label}
-      onClick={() => ctx.onHookTap(hook.id)}
-      onKeyDown={handleKeyDown}
-      onPointerDown={(event) => weight !== undefined && ctx.onWeightPointerDown(event, hook.id, weight)}
+      // In a read-only picture the hook is not a button at all.
+      role={ctx.readOnly ? undefined : 'button'}
+      tabIndex={ctx.readOnly ? undefined : 0}
+      aria-label={ctx.readOnly ? undefined : label}
+      onClick={ctx.readOnly ? undefined : () => ctx.onHookTap(hook.id)}
+      onKeyDown={ctx.readOnly ? undefined : handleKeyDown}
+      onPointerDown={ctx.readOnly ? undefined : (event) => weight !== undefined && ctx.onWeightPointerDown(event, hook.id, weight)}
     >
       <line className="mobile-string" x1={0} y1={0} x2={0} y2={hookTop} />
       {/* A small gold ring the string is tied to, then the "J" hook below it */}
