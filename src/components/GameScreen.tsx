@@ -148,8 +148,6 @@ export function GameScreen(props: GameScreenProps) {
           onHookTap={onHookTap}
           onWeightPointerDown={(event, hookId, weight) => startDrag(event, weight, hookId)}
         />
-        {/* Tutorial only: the live maths for every bar */}
-        {isTutorial && <BalanceMeter puzzle={puzzle} placement={shownPlacement} />}
       </section>
 
       {/* The weight in the player's "hand" while dragging */}
@@ -225,6 +223,9 @@ export function GameScreen(props: GameScreenProps) {
           </div>
         </section>
       )}
+
+      {/* Tutorial only: the live maths for every bar, under the weights */}
+      {isTutorial && <BalanceMeter puzzle={puzzle} placement={shownPlacement} />}
     </>
   )
 }

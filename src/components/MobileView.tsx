@@ -172,6 +172,28 @@ function describeBar(bar: Bar, placement: Placement): string {
 
 // ---------- Drawing one node (a bar or a hook) ----------
 
+/** An arm's length in notches, shown above the arm like a measurement on a drawing: |—— 5 ——| */
+function ArmLength({ from, to, notches, beam }: { from: number; to: number; notches: number; beam: number }) {
+  const y = -beam / 2 - 10 // just above the bar
+  const start = Math.min(from, to) + 4 // stop short of the pivot and the tip
+  const end = Math.max(from, to) - 4
+  const middle = (from + to) / 2
+  const tagWidth = notches >= 10 ? 20 : 15
+  return (
+    <g className="mobile-arm-length" aria-hidden="true">
+      {/* The measuring line, with a tick at each end */}
+      <line className="mobile-ruler" x1={start} y1={y} x2={end} y2={y} />
+      <line className="mobile-ruler" x1={start} y1={y - 3.5} x2={start} y2={y + 3.5} />
+      <line className="mobile-ruler" x1={end} y1={y - 3.5} x2={end} y2={y + 3.5} />
+      {/* A dark tag behind the number makes a gap in the line */}
+      <rect className="mobile-ruler-tag" x={middle - tagWidth / 2} y={y - 7} width={tagWidth} height={14} rx={3} />
+      <text className="mobile-notch-label" x={middle} y={y + 3.8}>
+        {notches}
+      </text>
+    </g>
+  )
+}
+
 function NodeView({ node, ctx }: { node: MobileNode; ctx: DrawContext }) {
   if (node.kind === 'hook') return <HookView hook={node} ctx={ctx} />
   return <BarView bar={node} ctx={ctx} />
@@ -233,13 +255,10 @@ function BarView({ bar, ctx }: { bar: Bar; ctx: DrawContext }) {
         <circle className="mobile-rivet" cx={leftEnd} cy={0} r={3.4} fill={`url(#${ids.brass})`} />
         <circle className="mobile-rivet" cx={rightEnd} cy={0} r={3.4} fill={`url(#${ids.brass})`} />
 
-        {/* Notch numbers, above the middle of each arm */}
-        <text className="mobile-notch-label" x={leftEnd / 2} y={-beam / 2 - 6}>
-          {bar.leftNotches}
-        </text>
-        <text className="mobile-notch-label" x={rightEnd / 2} y={-beam / 2 - 6}>
-          {bar.rightNotches}
-        </text>
+        {/* How long each arm is (in notches), drawn like a ruler measurement
+            so it can't be mistaken for a weight */}
+        <ArmLength from={0} to={leftEnd} notches={bar.leftNotches} beam={beam} />
+        <ArmLength from={0} to={rightEnd} notches={bar.rightNotches} beam={beam} />
 
         {/* The pivot: a gold ball joint in a dark collar, with a bright
             highlight. It glows (and turns emerald) when the puzzle is solved. */}

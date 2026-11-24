@@ -64,17 +64,24 @@
   stroke-linecap: round;
 }
 
-/* Notch numbers: champagne, with a dark halo so they read over anything */
+/* Arm lengths ("notches"): drawn like a measurement on a ruler, small and
+   flat, so they never look like the round glossy weights. */
+.mobile-ruler {
+  stroke: rgb(233 210 160 / 0.55);
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+
+.mobile-ruler-tag {
+  fill: #15110c;
+}
+
 .mobile-notch-label {
   fill: var(--color-notch);
-  stroke: rgb(10 8 6 / 0.85);
-  stroke-width: 3px;
-  stroke-linejoin: round;
-  paint-order: stroke;
-  font-size: 12.5px;
-  font-weight: 650;
-  letter-spacing: 0.02em;
+  font-size: 10.5px;
+  font-weight: 600;
   text-anchor: middle;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---------- Gold parts ---------- */
