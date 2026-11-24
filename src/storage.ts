@@ -85,6 +85,8 @@ export type DayResult = {
   rehangs: number
   /** True if it was solved later, from Past puzzles (doesn't count for streaks). */
   late?: boolean
+  /** How many hints were used (missing = 0). */
+  hints?: number
 }
 
 /** Has this player finished or skipped the tutorial before? */
@@ -112,7 +114,8 @@ function isDayResult(value: unknown): value is DayResult {
   return (
     typeof v.elapsed === 'number' && Number.isFinite(v.elapsed) && v.elapsed >= 0 &&
     typeof v.rehangs === 'number' && Number.isInteger(v.rehangs) && v.rehangs >= 0 &&
-    (v.late === undefined || typeof v.late === 'boolean')
+    (v.late === undefined || typeof v.late === 'boolean') &&
+    (v.hints === undefined || (typeof v.hints === 'number' && Number.isInteger(v.hints) && v.hints >= 0))
   )
 }
 
@@ -150,6 +153,7 @@ export type InProgress = {
   placement: Record<string, number>
   rehangs: number
   elapsed: number
+  hintsUsed?: number
 }
 
 /**
@@ -166,7 +170,8 @@ export function loadInProgress(day: number): InProgress | null {
     if (typeof p.placement !== 'object' || p.placement === null) return null
     if (!Object.values(p.placement).every((w) => typeof w === 'number')) return null
     if (typeof p.rehangs !== 'number' || typeof p.elapsed !== 'number') return null
-    return { day, placement: p.placement as Record<string, number>, rehangs: p.rehangs, elapsed: p.elapsed }
+    const hintsUsed = typeof p.hintsUsed === 'number' ? p.hintsUsed : undefined
+    return { day, placement: p.placement as Record<string, number>, rehangs: p.rehangs, elapsed: p.elapsed, hintsUsed }
   } catch {
     return null
   }
@@ -195,7 +200,12 @@ export function saveResult(day: number, result: DayResult): void {
   try {
     const all = loadAllResults()
     if (all[day]) return
-    all[day] = { elapsed: result.elapsed, rehangs: result.rehangs, ...(result.late ? { late: true } : {}) }
+    all[day] = {
+      elapsed: result.elapsed,
+      rehangs: result.rehangs,
+      ...(result.late ? { late: true } : {}),
+      ...(result.hints ? { hints: result.hints } : {}),
+    }
     localStorage.setItem(RESULTS_KEY, JSON.stringify(all))
   } catch {
     // Storage blocked: the game still works, it just won't remember.

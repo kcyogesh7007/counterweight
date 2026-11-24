@@ -10,7 +10,7 @@ type WinScreenProps = {
   /** Line under "Balanced!". */
   message?: string
   /** Time and re-hangs to show. Leave out for tutorial steps. */
-  stats?: { elapsed: number; rehangs: number }
+  stats?: { elapsed: number; rehangs: number; hints?: number }
   /** Text on the button, e.g. "Next". Leave out for no button. */
   buttonLabel?: string
   onButton?: () => void
@@ -48,6 +48,7 @@ export function WinScreen({ message, stats, buttonLabel, onButton, children }: W
           </div>
         </dl>
       )}
+      {stats?.hints ? <p className="win-hints">{stats.hints === 1 ? '1 hint used' : `${stats.hints} hints used`}</p> : null}
 
       {children}
 

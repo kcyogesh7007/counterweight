@@ -25,6 +25,7 @@
 import { useId, useMemo, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
 import { collectBars, collectHooks, getTiltDegrees } from '../game/balance.ts'
 import { SIZES, computeLayout, weightRadius, type MobileLayout } from '../game/layout.ts'
+import type { Hint } from '../game/hints.ts'
 import type { Bar, Hook, MobileNode, Placement, Puzzle } from '../game/types.ts'
 import './MobileView.css'
 
@@ -44,6 +45,8 @@ type DrawContext = {
   onWeightPointerDown: (event: PointerEvent, hookId: string, weight: number) => void
   /** Unique names of the shading recipes in <defs> (see ShadingDefs). */
   ids: ShadingIds
+  /** The hint being shown (a hook or bar to highlight), or null. */
+  hint: Hint | null
 }
 
 type ShadingIds = { wood: string; brass: string; bead: string; shadow: string }
@@ -95,12 +98,14 @@ type MobileViewProps = {
   solved: boolean
   /** True to play the "you did it!" sparkle burst (fresh solves only). */
   celebrate: boolean
+  /** A hint to show on the drawing (see game/hints.ts), or null. */
+  hint?: Hint | null
   onHookTap: (hookId: string) => void
   onWeightPointerDown: (event: PointerEvent, hookId: string, weight: number) => void
 }
 
 export function MobileView(props: MobileViewProps) {
-  const { puzzle, placement, selected, isDragging, dropTargetId, solved, celebrate, onHookTap, onWeightPointerDown } = props
+  const { puzzle, placement, selected, isDragging, dropTargetId, solved, celebrate, hint = null, onHookTap, onWeightPointerDown } = props
   // Only recalculate the layout when the puzzle changes (not on every tap).
   const layout = useMemo(() => computeLayout(puzzle.root), [puzzle])
   const { x, y, width, height } = layout.viewBox
@@ -115,7 +120,7 @@ export function MobileView(props: MobileViewProps) {
     bead: `bead${uid}`,
     shadow: `shadow${uid}`,
   }
-  const ctx: DrawContext = { layout, placement, dropTargetId, onHookTap, onWeightPointerDown, ids }
+  const ctx: DrawContext = { layout, placement, dropTargetId, onHookTap, onWeightPointerDown, ids, hint }
   const isHolding = selected !== null || isDragging
 
   return (
@@ -186,7 +191,18 @@ function BarView({ bar, ctx }: { bar: Bar; ctx: DrawContext }) {
 
       {/* Everything below is positioned relative to the pivot, then tilted */}
       <g className="mobile-swing" style={{ transform: `translate(0px, ${SIZES.barString}px) rotate(${tilt}deg)` }}>
-        {/* The bar: polished bronze with a soft shadow, a bright line of light
+        {/* Hint "start here": a soft gold glow behind this bar */}
+        {ctx.hint?.kind === 'foothold' && ctx.hint.barId === bar.id && (
+          <rect
+            className="mobile-bar-hint"
+            x={leftEnd - beam / 2 - 6}
+            y={-beam / 2 - 6}
+            width={rightEnd - leftEnd + beam + 12}
+            height={beam + 12}
+            rx={beam / 2 + 6}
+          />
+        )}
+        {/* The bar: glossy gold with a soft shadow, a bright line of light
             along the top, and a darker edge underneath */}
         <rect
           className="mobile-bar"
@@ -260,6 +276,9 @@ function HookView({ hook, ctx }: { hook: Hook; ctx: DrawContext }) {
   const classes = ['mobile-hook-group']
   if (weight !== undefined) classes.push('has-weight') // can be dragged away
   if (ctx.dropTargetId === hook.id) classes.push('is-drop-target')
+  // Hint pointing at this hook: a wrong weight here, or "the N goes here"
+  const hookHint = ctx.hint && ctx.hint.kind !== 'foothold' && ctx.hint.hookId === hook.id ? ctx.hint : null
+  if (hookHint) classes.push('is-hinted')
 
   return (
     <g
@@ -279,7 +298,15 @@ function HookView({ hook, ctx }: { hook: Hook; ctx: DrawContext }) {
 
       {weight === undefined ? (
         // Empty hook: a dashed circle showing where a weight can go
-        <circle className="mobile-empty" cx={0} cy={hookBottom + SIZES.emptyRadius} r={SIZES.emptyRadius} />
+        <>
+          <circle className="mobile-empty" cx={0} cy={hookBottom + SIZES.emptyRadius} r={SIZES.emptyRadius} />
+          {/* "The N goes here": a faint ghost of the number in the empty circle */}
+          {hookHint?.kind === 'place' && (
+            <text className="mobile-hint-ghost" x={0} y={hookBottom + SIZES.emptyRadius}>
+              {hookHint.weight}
+            </text>
+          )}
+        </>
       ) : (
         <WeightShape weight={weight} cx={0} cy={hookBottom + weightRadius(weight)} ids={ctx.ids} />
       )}

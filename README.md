@@ -87,6 +87,16 @@ scripts/
 └─ verify-puzzles.ts        the puzzle checker
 ```
 
+## Hints
+
+Every puzzle (except the tutorial) has **one hint**, from the lightbulb button in the tray. The hint picks the most useful nudge (see `src/game/hints.ts`):
+
+1. a weight on the wrong hook: that hook glows ("the 3 is in the wrong place");
+2. otherwise, an untouched bar that only one pair of weights fits: that bar glows;
+3. otherwise, one correct weight is shown on an empty hook ("the 7 goes here").
+
+The highlight disappears when you next move a weight. A used hint is remembered (even after a reload), shown on the win card as "1 hint used", and in Levels it caps that solve at ★★.
+
 ## Levels
 
 `src/data/levels.json` holds **60 levels**, made by `npm run build-levels` (fixed seed, always the same result):

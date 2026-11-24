@@ -6,14 +6,15 @@
 // puzzle automatically starts with empty hooks, 0:00 and 0 re-hangs (or,
 // if it was solved before, straight on the solved view).
 
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { findHint, hintMessage, MAX_HINTS, type Hint } from '../game/hints.ts'
 import { weightRadius } from '../game/layout.ts'
 import { formatTime, type SavedProgress } from '../game/moves.ts'
 import type { Puzzle } from '../game/types.ts'
 import { useDrag } from '../hooks/useDrag.ts'
 import { useGame } from '../hooks/useGame.ts'
 import type { DayResult } from '../storage.ts'
-import { ClockIcon, RehangIcon, ResetIcon } from './Icons.tsx'
+import { BulbIcon, ClockIcon, RehangIcon, ResetIcon } from './Icons.tsx'
 import { MobileView } from './MobileView.tsx'
 import { weightBackground } from './weightStyle.ts'
 import { WeightTray } from './WeightTray.tsx'
@@ -52,7 +53,7 @@ export function GameScreen(props: GameScreenProps) {
   // When the puzzle becomes solved, tell App the result (so it can be saved)
   // EXACTLY ONCE. A ref remembers that we've already told it, and holds the
   // latest onSolved function without making the effect run again.
-  const { isSolved, elapsed, rehangs } = game
+  const { isSolved, elapsed, rehangs, hintsUsed } = game
   const reported = useRef(false)
   const onSolvedRef = useRef(onSolved)
   useEffect(() => {
@@ -61,9 +62,24 @@ export function GameScreen(props: GameScreenProps) {
   useEffect(() => {
     if (isSolved && !reported.current) {
       reported.current = true
-      onSolvedRef.current?.({ elapsed, rehangs })
+      onSolvedRef.current?.({ elapsed, rehangs, hints: hintsUsed })
     }
-  }, [isSolved, elapsed, rehangs])
+  }, [isSolved, elapsed, rehangs, hintsUsed])
+
+  // ---------- Hints ----------
+  // The hint being shown right now (see game/hints.ts), or null. It's cleared
+  // as soon as the player moves a weight (the placement changes).
+  const [shownHint, setShownHint] = useState<Hint | null>(null)
+  useEffect(() => {
+    setShownHint(null)
+  }, [game.placement])
+  const hintsLeft = MAX_HINTS - hintsUsed
+  function showHint() {
+    const found = findHint(puzzle, game.placement)
+    if (!found || hintsLeft <= 0) return
+    game.onTakeHint()
+    setShownHint(found)
+  }
 
   // While a weight is being dragged OFF a hook, draw that hook as empty
   // (the weight is "in the player's hand", following the pointer), and let
@@ -80,6 +96,7 @@ export function GameScreen(props: GameScreenProps) {
   if (drag) hint = drag.overHookId ? `Let go to hang the ${drag.weight}.` : 'Drag it over a hook.'
   else if (game.selected !== null) hint = `Now tap a hook to hang the ${game.selected}.`
   else if (hungCount > 0) hint = 'Tap or drag a hung weight to take it down.'
+  if (shownHint && !drag) hint = hintMessage(shownHint)
 
   return (
     <>
@@ -98,6 +115,7 @@ export function GameScreen(props: GameScreenProps) {
           solved={game.isSolved}
           // Celebrate only a FRESH solve, not when coming back to one solved earlier.
           celebrate={game.isSolved && !earlierResult}
+          hint={shownHint}
           onHookTap={onHookTap}
           onWeightPointerDown={(event, hookId, weight) => startDrag(event, weight, hookId)}
         />
@@ -109,15 +127,15 @@ export function GameScreen(props: GameScreenProps) {
       {game.isSolved ? (
         <WinScreen
           message={hideWinMessage ? undefined : (isTutorial && puzzle.outro) || 'Every bar is level.'}
-          stats={isTutorial ? undefined : { elapsed: game.elapsed, rehangs: game.rehangs }}
+          stats={isTutorial ? undefined : { elapsed: game.elapsed, rehangs: game.rehangs, hints: hintsUsed }}
           buttonLabel={winButtonLabel}
           onButton={onWinButton}
         >
-          {typeof winExtra === 'function' ? winExtra({ elapsed: game.elapsed, rehangs: game.rehangs }) : winExtra}
+          {typeof winExtra === 'function' ? winExtra({ elapsed: game.elapsed, rehangs: game.rehangs, hints: hintsUsed }) : winExtra}
         </WinScreen>
       ) : (
         <section className="tray-panel" aria-label="Weights">
-          <p className="hint" aria-live="polite">
+          <p className={`hint${shownHint ? ' is-hint' : ''}`} aria-live="polite">
             {hint}
           </p>
           <WeightTray
@@ -138,9 +156,24 @@ export function GameScreen(props: GameScreenProps) {
                 </span>
                 <span className="stat" title="Re-hangs">
                   <RehangIcon />
-                  <strong>{game.rehangs}</strong> {game.rehangs === 1 ? 're-hang' : 're-hangs'}
+                  <strong>{game.rehangs}</strong>{' '}
+                  {/* On narrow phones the word is hidden from view (screen readers still hear it) */}
+                  <span className="stat-word">{game.rehangs === 1 ? 're-hang' : 're-hangs'}</span>
                 </span>
               </>
+            )}
+            {!isTutorial && (
+              <button
+                type="button"
+                className="hint-button"
+                aria-label={hintsLeft > 0 ? 'Get a hint (1 per puzzle)' : 'No hints left'}
+                title={hintsLeft > 0 ? 'Hint' : 'No hints left'}
+                onClick={showHint}
+                disabled={hintsLeft <= 0}
+              >
+                <BulbIcon />
+                {hintsLeft > 0 && <span className="hint-badge">{hintsLeft}</span>}
+              </button>
             )}
             <button
               type="button"

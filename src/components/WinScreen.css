@@ -133,3 +133,12 @@
   color: var(--color-text);
   font-variant-numeric: tabular-nums;
 }
+
+/* "1 hint used" under the stats */
+.win-hints {
+  position: relative;
+  margin-top: calc(-1 * var(--space-1));
+  color: var(--gold);
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+}

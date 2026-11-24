@@ -706,3 +706,94 @@ body::after {
     animation-delay: 0ms !important;
   }
 }
+
+/* ---------- Hints ---------- */
+
+/* The round lightbulb button, next to Reset, with a small gold badge
+   showing how many hints are left. */
+.hint-button {
+  position: relative;
+  margin-left: auto; /* pushes it (and Reset after it) to the right */
+  width: var(--tap-size);
+  height: var(--tap-size);
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 25%, #3a3127, #1a1612 70%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 235 190 / 0.12),
+    0 4px 10px rgb(0 0 0 / 0.45);
+  color: var(--gold);
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    box-shadow 200ms ease,
+    opacity 160ms ease;
+}
+
+.hint-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* When there's a hint button, Reset sits right next to it */
+.hint-button + .reset-button {
+  margin-left: 0;
+}
+
+@media (hover: hover) {
+  .hint-button:hover:not(:disabled) {
+    box-shadow:
+      inset 0 1px 0 rgb(255 235 190 / 0.12),
+      0 0 16px rgb(233 200 121 / 0.3),
+      0 4px 10px rgb(0 0 0 / 0.45);
+  }
+}
+
+.hint-button:active:not(:disabled) {
+  transform: scale(0.93);
+}
+
+.hint-button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.hint-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  min-width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  padding: 0 4px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(180deg, #fbe3a2, #c79a45);
+  color: var(--color-accent-text);
+  font-size: 11px;
+  font-weight: 800;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.5);
+}
+
+/* The instruction line turns gold while a hint is showing */
+.hint.is-hint {
+  color: var(--gold-light);
+  font-weight: 600;
+}
+
+/* Narrow phones: there's room for the timer, re-hangs, hint and reset only
+   if the word "re-hangs" is hidden from view. It stays readable to screen
+   readers (this is the same trick as .visually-hidden). */
+@media (max-width: 400px) {
+  .stat-word {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}

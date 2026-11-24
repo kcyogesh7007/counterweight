@@ -19,6 +19,7 @@
 // pass simple made-up times like 1000 and 5000.
 
 import { collectHooks, isSolved } from './balance.ts'
+import { MAX_HINTS } from './hints.ts'
 import type { Placement, Puzzle } from './types.ts'
 
 export type GameState = {
@@ -32,10 +33,12 @@ export type GameState = {
   startedAt: number | null
   /** When the puzzle was solved (ms), or null if not solved yet. */
   solvedAt: number | null
+  /** How many hints were used on this puzzle (see hints.ts). */
+  hintsUsed: number
 }
 
 export function createInitialState(): GameState {
-  return { placement: {}, selected: null, rehangs: 0, startedAt: null, solvedAt: null }
+  return { placement: {}, selected: null, rehangs: 0, startedAt: null, solvedAt: null, hintsUsed: 0 }
 }
 
 /** A half-finished puzzle, as saved between visits. */
@@ -44,12 +47,14 @@ export type SavedProgress = {
   rehangs: number
   /** Milliseconds played so far. */
   elapsed: number
+  /** Hints used so far (older saves don't have this: treated as 0). */
+  hintsUsed?: number
 }
 
 /** What to save right now for a puzzle in progress (null = nothing worth saving). */
 export function progressSnapshot(state: GameState, now: number): SavedProgress | null {
   if (state.startedAt === null || state.solvedAt !== null) return null
-  return { placement: { ...state.placement }, rehangs: state.rehangs, elapsed: elapsedMs(state, now) }
+  return { placement: { ...state.placement }, rehangs: state.rehangs, elapsed: elapsedMs(state, now), hintsUsed: state.hintsUsed }
 }
 
 /**
@@ -67,7 +72,8 @@ export function createResumedState(puzzle: Puzzle, saved: SavedProgress, now: nu
     entries.every(([hookId, w]) => hookIds.has(hookId) && puzzle.weights.includes(w)) &&
     new Set(weights).size === weights.length &&
     Number.isFinite(saved.elapsed) && saved.elapsed >= 0 &&
-    Number.isInteger(saved.rehangs) && saved.rehangs >= 0
+    Number.isInteger(saved.rehangs) && saved.rehangs >= 0 &&
+    (saved.hintsUsed === undefined || (Number.isInteger(saved.hintsUsed) && saved.hintsUsed >= 0))
   if (!valid) return createInitialState()
 
   const placement = { ...saved.placement }
@@ -76,6 +82,7 @@ export function createResumedState(puzzle: Puzzle, saved: SavedProgress, now: nu
     placement,
     selected: null,
     rehangs: saved.rehangs,
+    hintsUsed: saved.hintsUsed ?? 0,
     startedAt,
     // (Can't normally happen, but if the saved weights already balance everything, it's solved.)
     solvedAt: isSolved(puzzle, placement) ? now : null,
@@ -86,8 +93,15 @@ export function createResumedState(puzzle: Puzzle, saved: SavedProgress, now: nu
  * A puzzle that was already solved earlier (e.g. you come back to today's
  * puzzle after solving it). Shows the solution, with your time and re-hangs.
  */
-export function createSolvedState(puzzle: Puzzle, result: { elapsed: number; rehangs: number }): GameState {
-  return { placement: { ...puzzle.solution }, selected: null, rehangs: result.rehangs, startedAt: 0, solvedAt: result.elapsed }
+export function createSolvedState(puzzle: Puzzle, result: { elapsed: number; rehangs: number; hints?: number }): GameState {
+  return {
+    placement: { ...puzzle.solution },
+    selected: null,
+    rehangs: result.rehangs,
+    startedAt: 0,
+    solvedAt: result.elapsed,
+    hintsUsed: result.hints ?? 0,
+  }
 }
 
 /** Is this weight currently hanging somewhere? */
@@ -175,6 +189,16 @@ export function dropWeight(
   // Step 2: hang it, or leave it in the tray.
   if (toHookId === null) return s
   return tapHook(selectWeight(s, weight, now), toHookId, puzzle, now)
+}
+
+/**
+ * The player pressed the hint button. Counts the hint (up to MAX_HINTS) and
+ * starts the clock if it hasn't started yet. Which hint to SHOW is worked out
+ * separately, by findHint in hints.ts.
+ */
+export function takeHint(state: GameState, now: number): GameState {
+  if (state.solvedAt !== null || state.hintsUsed >= MAX_HINTS) return state
+  return { ...state, hintsUsed: state.hintsUsed + 1, selected: null, startedAt: state.startedAt ?? now }
 }
 
 /**

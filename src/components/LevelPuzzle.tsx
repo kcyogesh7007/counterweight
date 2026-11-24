@@ -23,6 +23,12 @@ const MESSAGES = {
   1: 'Solved! Fewer re-hangs earn more stars.',
 }
 
+/** Stars for a solve: from re-hangs, but at most ★★ if a hint was used. */
+function levelStars(result: { rehangs: number; hints?: number }): 1 | 2 | 3 {
+  const stars = starsFor(result.rehangs)
+  return result.hints ? (Math.min(stars, 2) as 1 | 2) : stars
+}
+
 export function LevelPuzzle({ level, onNextLevel, onMap }: Props) {
   // Your best BEFORE this attempt (so we can say "New best!").
   const [bestBefore, setBestBefore] = useState(() => loadLevelStars()[level] ?? 0)
@@ -56,14 +62,14 @@ export function LevelPuzzle({ level, onNextLevel, onMap }: Props) {
       }
       isTutorial={false}
       hideWinMessage
-      onSolved={(result) => saveLevelStars(level, starsFor(result.rehangs))}
+      onSolved={(result) => saveLevelStars(level, levelStars(result))}
       winExtra={(result) => {
-        const stars = starsFor(result.rehangs)
+        const stars = levelStars(result)
         return (
           <>
             <Stars count={stars} size="large" animate />
             <p className="level-message">
-              {MESSAGES[stars]}
+              {result.hints ? 'A hint was used, so this solve is worth up to ★★.' : MESSAGES[stars]}
               {stars > bestBefore && bestBefore > 0 && <strong className="new-best"> New best!</strong>}
             </p>
             <button type="button" className="button" onClick={isLast ? onMap : onNextLevel}>

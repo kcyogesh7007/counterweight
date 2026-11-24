@@ -11,6 +11,7 @@ import {
   createSolvedState,
   dropWeight,
   progressSnapshot,
+  takeHint,
   elapsedMs,
   formatTime,
   resetBoard,
@@ -228,7 +229,7 @@ describe('saving and resuming a half-finished puzzle', () => {
   it('saves the hung weights, re-hangs and time played so far', () => {
     let s = hang(createInitialState(), 7, 'a', 1000)
     s = hang(s, 3, 'a', 2000) // swap: 1 re-hang
-    expect(progressSnapshot(s, 9000)).toEqual({ placement: { a: 3 }, rehangs: 1, elapsed: 8000 })
+    expect(progressSnapshot(s, 9000)).toEqual({ placement: { a: 3 }, rehangs: 1, elapsed: 8000, hintsUsed: 0 })
   })
 
   it('saves nothing once solved', () => {
@@ -259,6 +260,29 @@ describe('saving and resuming a half-finished puzzle', () => {
       { placement: { a: 3 }, rehangs: 0, elapsed: Number.NaN }, // broken time
     ]
     for (const saved of bad) expect(createResumedState(puzzle, saved, 0)).toEqual(createInitialState())
+  })
+})
+
+describe('hints (takeHint)', () => {
+  it('counts one hint, then no more (1 per puzzle)', () => {
+    const s1 = takeHint(createInitialState(), 5000)
+    expect(s1.hintsUsed).toBe(1)
+    expect(takeHint(s1, 6000)).toBe(s1) // second press: nothing changes
+  })
+
+  it('starts the timer if it was not running yet', () => {
+    expect(takeHint(createInitialState(), 5000).startedAt).toBe(5000)
+  })
+
+  it('is remembered through save and resume (no free hint after a reload)', () => {
+    const s = takeHint(hang(createInitialState(), 7, 'a', 1000), 2000)
+    const saved = progressSnapshot(s, 3000)!
+    expect(createResumedState(puzzle, saved, 10_000).hintsUsed).toBe(1)
+  })
+
+  it('does nothing once the puzzle is solved', () => {
+    const solved = hangSolution(createInitialState(), 0)
+    expect(takeHint(solved, 0)).toBe(solved)
   })
 })
 

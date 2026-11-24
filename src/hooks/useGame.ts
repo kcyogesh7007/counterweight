@@ -19,6 +19,7 @@ import {
   elapsedMs,
   progressSnapshot,
   resetBoard,
+  takeHint,
   selectWeight,
   tapHook,
   type DragSource,
@@ -29,7 +30,7 @@ import type { Puzzle } from '../game/types.ts'
 
 type Options = {
   /** If this puzzle was already solved before, its result: the game starts solved. */
-  earlierResult?: { elapsed: number; rehangs: number } | null
+  earlierResult?: { elapsed: number; rehangs: number; hints?: number } | null
   /** A half-finished game saved earlier: the game carries on from it. */
   resumeFrom?: SavedProgress | null
   /** Called about once a second (and after every move) with what to save. */
@@ -104,5 +105,11 @@ export function useGame(puzzle: Puzzle, { earlierResult, resumeFrom, onProgress 
     },
     /** Player pressed Reset. */
     onReset: () => setState((s) => resetBoard(s)),
+    /** Player pressed the hint button (counts it; which hint to show is decided in GameScreen). */
+    onTakeHint: () => {
+      const t = Date.now()
+      setNow(t)
+      setState((s) => takeHint(s, t))
+    },
   }
 }

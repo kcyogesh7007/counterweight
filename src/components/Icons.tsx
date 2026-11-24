@@ -107,6 +107,17 @@ export function ArchiveIcon() {
   )
 }
 
+/** A lightbulb (for Hint). */
+export function BulbIcon() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M7.2 13.2c-1.4-1-2.4-2.6-2.4-4.4a5.2 5.2 0 0 1 10.4 0c0 1.8-1 3.4-2.4 4.4v1.3H7.2Z" />
+      <path d="M7.8 17h4.4" />
+      <path d="M9.2 10.5 10 8.6l.8 1.9" />
+    </svg>
+  )
+}
+
 /** A circular arrow (for Reset). */
 export function ResetIcon() {
   return (
