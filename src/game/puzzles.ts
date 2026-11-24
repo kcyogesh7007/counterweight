@@ -10,11 +10,15 @@
 // by the game directly: `npm run build-daily` copies them in as Days #1–3.)
 
 import dailyData from '../data/daily.json'
+import levelsData from '../data/levels.json'
 import tutorialData from '../data/tutorial.json'
 import type { Puzzle } from './types.ts'
 
 /** One puzzle per day: index 0 = Day #1 (23 Nov 2026). */
 export const DAILY_PUZZLES = dailyData as unknown as Puzzle[]
+
+/** Levels mode: index 0 = Level 1. Made by `npm run build-levels`. */
+export const LEVEL_PUZZLES = levelsData as unknown as Puzzle[]
 
 /** The tutorial puzzles, in order. */
 export const TUTORIAL_PUZZLES = tutorialData as unknown as Puzzle[]

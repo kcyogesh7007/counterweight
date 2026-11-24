@@ -8,7 +8,7 @@ import './WinScreen.css'
 
 type WinScreenProps = {
   /** Line under "Balanced!". */
-  message: string
+  message?: string
   /** Time and re-hangs to show. Leave out for tutorial steps. */
   stats?: { elapsed: number; rehangs: number }
   /** Text on the button, e.g. "Next". Leave out for no button. */
@@ -21,17 +21,20 @@ type WinScreenProps = {
 export function WinScreen({ message, stats, buttonLabel, onButton, children }: WinScreenProps) {
   // Move keyboard / screen-reader focus to the heading when the screen appears,
   // so the win is announced. useRef gives us a handle on the real HTML element.
+  // Also scroll the whole card into view, so its buttons are visible on short phones.
   const headingRef = useRef<HTMLHeadingElement>(null)
+  const cardRef = useRef<HTMLElement>(null)
   useEffect(() => {
-    headingRef.current?.focus()
+    headingRef.current?.focus({ preventScroll: true })
+    cardRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
   }, [])
 
   return (
-    <section className="card win" aria-labelledby="win-title">
+    <section ref={cardRef} className="card win" aria-labelledby="win-title">
       <h2 id="win-title" className="win-title" ref={headingRef} tabIndex={-1}>
         Balanced!
       </h2>
-      <p className="win-subtitle">{message}</p>
+      {message && <p className="win-subtitle">{message}</p>}
 
       {stats && (
         <dl className="win-stats">

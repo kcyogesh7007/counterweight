@@ -32,16 +32,19 @@ type GameScreenProps = {
   /** Called about once a second while playing, with what to save. */
   onProgress?: (progress: SavedProgress) => void
   /** Button on the win card (optional). */
+  /** Hide the "Every bar is level." line (Levels shows its own star message instead). */
+  hideWinMessage?: boolean
   winButtonLabel?: string
   onWinButton?: () => void
   /** Extra content on the win card, e.g. the countdown to tomorrow. */
-  winExtra?: ReactNode
+  /** Extra content on the win card. Can be a function of the result (time, re-hangs). */
+  winExtra?: ReactNode | ((result: DayResult) => ReactNode)
   /** Called when the puzzle is solved, with the result (used to save it). */
   onSolved?: (result: DayResult) => void
 }
 
 export function GameScreen(props: GameScreenProps) {
-  const { puzzle, subtitle, isTutorial, earlierResult, resumeFrom, onProgress, winButtonLabel, onWinButton, winExtra, onSolved } = props
+  const { puzzle, subtitle, isTutorial, earlierResult, resumeFrom, onProgress, winButtonLabel, onWinButton, winExtra, onSolved, hideWinMessage } = props
   const game = useGame(puzzle, { earlierResult, resumeFrom, onProgress })
   const { drag, startDrag, shouldIgnoreClick } = useDrag(game.onDrop, !game.isSolved)
   const hungCount = Object.keys(game.placement).length
@@ -96,12 +99,12 @@ export function GameScreen(props: GameScreenProps) {
 
       {game.isSolved ? (
         <WinScreen
-          message={(isTutorial && puzzle.outro) || 'Every bar is level.'}
+          message={hideWinMessage ? undefined : (isTutorial && puzzle.outro) || 'Every bar is level.'}
           stats={isTutorial ? undefined : { elapsed: game.elapsed, rehangs: game.rehangs }}
           buttonLabel={winButtonLabel}
           onButton={onWinButton}
         >
-          {winExtra}
+          {typeof winExtra === 'function' ? winExtra({ elapsed: game.elapsed, rehangs: game.rehangs }) : winExtra}
         </WinScreen>
       ) : (
         <section className="tray-panel" aria-label="Weights">

@@ -11,7 +11,8 @@
     "verify": "node scripts/verify-puzzles.ts",
     "test": "vitest run",
     "generate": "node scripts/generate-puzzles.ts",
-    "build-daily": "node scripts/build-daily.ts"
+    "build-daily": "node scripts/build-daily.ts",
+    "build-levels": "node scripts/build-levels.ts"
   },
   "dependencies": {
     "@fontsource-variable/fraunces": "^5.3.0",

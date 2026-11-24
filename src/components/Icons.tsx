@@ -37,6 +37,76 @@ export function RehangIcon() {
   )
 }
 
+/** A left arrow (Back). */
+export function BackIcon() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12.5 4.5 7 10l5.5 5.5" />
+    </svg>
+  )
+}
+
+/** A right chevron (on list cards). */
+export function ChevronIcon() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M7.5 4.5 13 10l-5.5 5.5" />
+    </svg>
+  )
+}
+
+/** A small flame (streak). */
+export function FlameIcon() {
+  return (
+    <svg viewBox="0 0 16 16" aria-hidden="true">
+      <path
+        d="M8 1.5c.4 2-1 3.2-2.2 4.6C4.6 7.4 4 8.6 4 10a4 4 0 0 0 8 0c0-1.6-.8-2.7-1.5-3.5-.2 1-.7 1.6-1.4 1.8.4-2.4-.1-4.9-1.1-6.8Z"
+        fill="#e8743b"
+      />
+      <path d="M8 9.2c.9.9 1.6 1.6 1.6 2.6a1.6 1.6 0 0 1-3.2 0c0-.9.6-1.6 1.6-2.6Z" fill="#f6c64a" />
+    </svg>
+  )
+}
+
+/** Levels: three steps with a star on top. */
+export function LevelsIcon() {
+  return (
+    <svg viewBox="0 0 32 32" aria-hidden="true">
+      <rect x="4" y="20" width="7" height="8" rx="1.5" fill="var(--weight-7)" />
+      <rect x="12.5" y="15" width="7" height="13" rx="1.5" fill="var(--weight-6)" />
+      <rect x="21" y="10" width="7" height="18" rx="1.5" fill="var(--weight-5)" />
+      <path d="m24.5 2.5 1.3 2.7 3 .4-2.2 2 .5 3-2.6-1.4-2.6 1.4.5-3-2.2-2 3-.4Z" fill="var(--brass-mid)" />
+    </svg>
+  )
+}
+
+/** Practice: an infinity loop (endless). */
+export function PracticeIcon() {
+  return (
+    <svg viewBox="0 0 32 32" aria-hidden="true" fill="none" strokeWidth="3.2" strokeLinecap="round">
+      <path d="M16 16c-2.5-3.5-4.5-5-7-5a5 5 0 0 0 0 10c2.5 0 4.5-1.5 7-5Z" stroke="var(--weight-2)" />
+      <path d="M16 16c2.5 3.5 4.5 5 7 5a5 5 0 0 0 0-10c-2.5 0-4.5 1.5-7 5Z" stroke="var(--weight-4)" />
+    </svg>
+  )
+}
+
+/** Past puzzles: a calendar page. */
+export function ArchiveIcon() {
+  return (
+    <svg viewBox="0 0 32 32" aria-hidden="true">
+      <rect x="5" y="7" width="22" height="20" rx="3.5" fill="var(--color-surface)" stroke="var(--color-notch)" strokeWidth="1.6" />
+      <rect x="5" y="7" width="22" height="6" rx="3" fill="var(--weight-3)" />
+      <rect x="10" y="4" width="2.4" height="6" rx="1.2" fill="var(--color-notch)" />
+      <rect x="19.6" y="4" width="2.4" height="6" rx="1.2" fill="var(--color-notch)" />
+      <circle cx="11" cy="18" r="1.6" fill="var(--weight-1)" />
+      <circle cx="16" cy="18" r="1.6" fill="var(--weight-6)" />
+      <circle cx="21" cy="18" r="1.6" fill="var(--weight-7)" />
+      <circle cx="11" cy="23" r="1.6" fill="var(--weight-5)" />
+      <circle cx="16" cy="23" r="1.6" fill="var(--weight-2)" />
+    </svg>
+  )
+}
+
 /** A circular arrow (for Reset). */
 export function ResetIcon() {
   return (

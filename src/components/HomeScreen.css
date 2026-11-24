@@ -1,0 +1,241 @@
+/* HomeScreen.css — the starting page. */
+
+.home {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.home-tagline {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  text-align: center;
+  margin-top: var(--space-1);
+}
+
+/* ---------- Today's puzzle: the big card ---------- */
+
+.home-today {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    'art body'
+    'foot foot';
+  gap: var(--space-3) var(--space-4);
+  width: 100%;
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(ellipse 80% 70% at 15% 30%, rgb(255 255 255 / 0.7), rgb(255 255 255 / 0) 70%),
+    var(--color-surface);
+  box-shadow: var(--shadow-card);
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  .home-today {
+    background:
+      radial-gradient(ellipse 80% 70% at 15% 30%, rgb(255 225 170 / 0.07), rgb(255 225 170 / 0) 70%),
+      var(--color-surface);
+  }
+}
+
+/* A thin band of brass along the top, like the win card */
+.home-today::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--brass-dark), var(--brass-light), var(--brass-mid), var(--brass-light), var(--brass-dark));
+}
+
+.home-today:active {
+  transform: scale(0.985);
+}
+
+.home-today-art {
+  grid-area: art;
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--color-panel);
+  box-shadow: inset 0 2px 4px rgb(60 40 10 / 0.12);
+}
+
+.home-today-logo {
+  width: 52px;
+  height: 52px;
+}
+
+.home-today-body {
+  grid-area: body;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.home-eyebrow {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.home-today-title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-lg);
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.home-today .difficulty {
+  margin-top: 0;
+}
+
+.home-status {
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.home-status.is-done {
+  color: var(--color-success);
+  font-weight: 700;
+}
+
+.home-today-footer {
+  grid-area: foot;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.home-streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+}
+
+.home-streak svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Looks like the main button (the whole card is what you tap). */
+.home-play {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-6);
+  border-radius: var(--radius-full);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-accent) 82%, white), var(--color-accent));
+  color: var(--color-accent-text);
+  font-weight: 700;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.3),
+    0 4px 14px color-mix(in srgb, var(--color-accent) 35%, transparent);
+}
+
+/* ---------- Other ways to play ---------- */
+
+.home-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.home-mode {
+  width: 100%;
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 140ms ease, background 140ms ease;
+}
+
+.home-mode:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.home-mode:disabled {
+  cursor: default;
+}
+
+.home-mode-icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--color-panel);
+}
+
+.home-mode-icon svg {
+  width: 30px;
+  height: 30px;
+}
+
+.home-mode-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.home-mode-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+
+.home-mode-text {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.35;
+}
+
+.home-mode-chevron {
+  color: var(--color-text-muted);
+}
+
+.home-mode-chevron svg {
+  width: 20px;
+  height: 20px;
+}
+
+.home-soon {
+  flex-shrink: 0;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-panel);
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}

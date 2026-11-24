@@ -13,9 +13,41 @@
 //   counterweight:inProgress    today's half-finished puzzle (deleted once solved), e.g.
 //                               {"day":1,"placement":{"a":7},"rehangs":0,"elapsed":42000}
 
+//   counterweight:levels        best stars per level, e.g. {"1":3,"2":2}
+
 const TUTORIAL_DONE_KEY = 'counterweight:tutorialDone'
 const RESULTS_KEY = 'counterweight:results'
 const IN_PROGRESS_KEY = 'counterweight:inProgress'
+const LEVELS_KEY = 'counterweight:levels'
+
+/** Best stars per level (level number -> 1, 2 or 3). Damaged entries are skipped. */
+export function loadLevelStars(): Record<number, number> {
+  try {
+    const parsed: unknown = JSON.parse(localStorage.getItem(LEVELS_KEY) ?? '{}')
+    if (typeof parsed !== 'object' || parsed === null) return {}
+    const stars: Record<number, number> = {}
+    for (const [level, value] of Object.entries(parsed)) {
+      const n = Number(level)
+      if (Number.isInteger(n) && n >= 1 && (value === 1 || value === 2 || value === 3)) stars[n] = value
+    }
+    return stars
+  } catch {
+    return {}
+  }
+}
+
+/** Save stars for a level, keeping the BEST ever. Returns true if it's a new best. */
+export function saveLevelStars(level: number, stars: number): boolean {
+  try {
+    const all = loadLevelStars()
+    if ((all[level] ?? 0) >= stars) return false
+    all[level] = stars
+    localStorage.setItem(LEVELS_KEY, JSON.stringify(all))
+    return true
+  } catch {
+    return false
+  }
+}
 
 /** How you did on one day's puzzle. */
 export type DayResult = {

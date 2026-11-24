@@ -33,7 +33,7 @@ import { puzzleFingerprint } from './lib/generator.ts'
 
 // By default it checks our real puzzle files. You can also check other files:
 //   npm run verify -- path/to/some-puzzles.json
-const DEFAULT_FILES = ['src/data/tutorial.json', 'src/data/puzzles.json', 'src/data/daily.json']
+const DEFAULT_FILES = ['src/data/tutorial.json', 'src/data/puzzles.json', 'src/data/daily.json', 'src/data/levels.json']
 
 /** Files with more puzzles than this print a summary instead of one line per puzzle. */
 const QUIET_ABOVE = 10

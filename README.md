@@ -32,6 +32,7 @@ npm run dev      # starts the game, open the address it prints (http://localhost
 | `npm test`            | Runs the automatic tests (maths, tapping rules, timer, dates)   |
 | `npm run verify`      | Checks every puzzle file (see below)                            |
 | `npm run build-daily` | Rebuilds the year of daily puzzles (see below)                  |
+| `npm run build-levels`| Rebuilds the 60 levels (see below)                              |
 | `npm run generate`    | Prints new puzzle candidates, for exploring                     |
 | `npm run build`       | Type-checks the code and builds the final website into `dist/`  |
 | `npm run preview`     | Serves the built `dist/` folder, to try the final version       |
@@ -82,6 +83,20 @@ scripts/
 ├─ generate-puzzles.ts      prints candidates
 └─ verify-puzzles.ts        the puzzle checker
 ```
+
+## Levels
+
+`src/data/levels.json` holds **60 levels**, made by `npm run build-levels` (fixed seed, always the same result):
+
+| Levels | Weights | Group |
+| --- | --- | --- |
+| 1–5 | 3 | First steps |
+| 6–12 | 4 | Warming up |
+| 13–25 | 5 | Getting serious |
+| 26–40 | 6 | Tricky |
+| 41–60 | 7 | Fiendish |
+
+Within each group, puzzles go from easier to harder. No level repeats a daily or tutorial puzzle. Solving a level opens the next one. Stars: **0 re-hangs ★★★, 1–2 ★★, 3 or more ★**. Your best stars are kept, and you can replay a level to improve them. Levels never affect the daily streak.
 
 ## The daily puzzles
 

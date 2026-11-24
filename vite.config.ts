@@ -11,11 +11,11 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        // Put the year of daily puzzles in its own file ("puzzles-….js").
+        // Put the puzzle lists (daily + levels) in their own file ("puzzles-….js").
         // It's big but rarely changes, so browsers can keep it cached
         // while the (small) game code gets updated.
         manualChunks(id) {
-          if (id.endsWith('daily.json')) return 'puzzles'
+          if (id.endsWith('daily.json') || id.endsWith('levels.json')) return 'puzzles'
         },
       },
     },

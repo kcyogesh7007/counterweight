@@ -322,6 +322,30 @@ svg {
   transform: scale(0.94);
 }
 
+/* ← Back, at the left of the header on every screen except home. */
+.back-button {
+  width: var(--tap-size);
+  height: var(--tap-size);
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  margin-left: calc(-1 * var(--space-3));
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.back-button svg {
+  width: 22px;
+  height: 22px;
+}
+
+.back-button:active {
+  background: var(--color-panel);
+}
+
 /* A text-style button, e.g. "Skip" in the header during the tutorial. */
 .link-button {
   flex-shrink: 0;

@@ -20,6 +20,16 @@ export function dayNumber(now: Date): number {
   return Math.max(1, Math.round((today - LAUNCH_UTC) / MS_PER_DAY) + 1)
 }
 
+/** The calendar date of a day number (#1 = 23 Nov 2026), at local midnight. */
+export function dayDate(day: number): Date {
+  return new Date(2026, 10, 23 + (day - 1))
+}
+
+/** Difficulty of a daily puzzle, 1–7: Monday (1) is the easiest, Sunday (7) the hardest. */
+export function dailyDifficulty(day: number): number {
+  return ((day - 1) % 7) + 1
+}
+
 /** The puzzle for a day. After the list runs out it starts again from the top. */
 export function puzzleForDay(day: number, puzzles: Puzzle[]): Puzzle {
   return puzzles[(day - 1) % puzzles.length]
