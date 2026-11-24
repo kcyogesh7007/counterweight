@@ -22,17 +22,17 @@ type WeightTrayProps = {
   onWeightPointerDown: (event: PointerEvent, weight: number) => void
 }
 
-/** Most weights we put in one row before wrapping (6 fit nicely on a 360px phone). */
-const MAX_PER_ROW = 6
+/** Most weights we put in one row before wrapping (5 fit on a 360px phone). */
+const MAX_PER_ROW = 5
 
 export function WeightTray(props: WeightTrayProps) {
   const { weights, placement, selected, liftedWeight, onWeightTap, onWeightPointerDown } = props
-  // Split into evenly sized rows: 7 weights -> 4 + 3, 10 weights -> 5 + 5.
+  // Split into evenly sized rows: 7 weights -> 4 + 3, 6 -> 3 + 3, 5 -> one row of 5.
   const rows = Math.ceil(weights.length / MAX_PER_ROW)
   const columns = Math.ceil(weights.length / rows)
 
   return (
-    <div className="tray" style={{ gridTemplateColumns: `repeat(${columns}, var(--tap-size))` }}>
+    <div className="tray" style={{ gridTemplateColumns: `repeat(${columns}, 48px)` }}>
       {weights.map((weight) => {
         const hung = isHung(placement, weight)
         const isSelected = selected === weight

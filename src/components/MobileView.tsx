@@ -50,11 +50,11 @@ type ShadingIds = { wood: string; brass: string; bead: string; shadow: string }
 
 /**
  * Reusable "shading recipes" for the drawing, defined once inside the SVG:
- *   wood   – the beam: lighter on top, darker underneath (a rounded look)
- *   brass  – pivots and rivets: a shiny metal sphere
+ *   wood   – the bars: glossy gold, bright along the top, darker underneath
+ *   brass  – joints, caps and screws: a shiny gold sphere
  *   bead   – laid OVER a weight's colour: light top-left, shadow bottom-right
- *   shadow – a soft drop shadow
- * Colours come from CSS variables, so dark mode changes them automatically.
+ *   shadow – a soft drop shadow (deeper, for the dark room)
+ * Colours come from CSS variables in global.css.
  * Each recipe needs a unique id; useId() gives us one that can't clash.
  */
 function ShadingDefs({ ids }: { ids: ShadingIds }) {
@@ -62,22 +62,23 @@ function ShadingDefs({ ids }: { ids: ShadingIds }) {
     <defs>
       <linearGradient id={ids.wood} x1="0" y1="0" x2="0" y2="1">
         <stop offset="0%" style={{ stopColor: 'var(--beam-light)' }} />
-        <stop offset="55%" style={{ stopColor: 'var(--beam-mid)' }} />
-        <stop offset="100%" style={{ stopColor: 'var(--beam-dark)' }} />
+        <stop offset="35%" style={{ stopColor: 'var(--beam-mid)' }} />
+        <stop offset="70%" style={{ stopColor: 'var(--beam-dark)' }} />
+        <stop offset="100%" style={{ stopColor: 'var(--beam-mid)' }} />
       </linearGradient>
       <radialGradient id={ids.brass} cx="35%" cy="30%" r="75%">
         <stop offset="0%" style={{ stopColor: 'var(--brass-light)' }} />
-        <stop offset="55%" style={{ stopColor: 'var(--brass-mid)' }} />
+        <stop offset="45%" style={{ stopColor: 'var(--brass-mid)' }} />
         <stop offset="100%" style={{ stopColor: 'var(--brass-dark)' }} />
       </radialGradient>
-      <radialGradient id={ids.bead} cx="34%" cy="28%" r="80%">
-        <stop offset="0%" stopColor="#fff" stopOpacity="0.55" />
-        <stop offset="22%" stopColor="#fff" stopOpacity="0.12" />
-        <stop offset="60%" stopColor="#fff" stopOpacity="0" />
-        <stop offset="100%" stopColor="#000" stopOpacity="0.18" />
+      <radialGradient id={ids.bead} cx="34%" cy="26%" r="85%">
+        <stop offset="0%" stopColor="#fff" stopOpacity="0.45" />
+        <stop offset="30%" stopColor="#fff" stopOpacity="0.08" />
+        <stop offset="62%" stopColor="#000" stopOpacity="0" />
+        <stop offset="100%" stopColor="#000" stopOpacity="0.38" />
       </radialGradient>
-      <filter id={ids.shadow} x="-20%" y="-40%" width="140%" height="220%">
-        <feDropShadow dx="0" dy="1.6" stdDeviation="1.4" style={{ floodColor: 'var(--shadow-color)' }} floodOpacity="0.28" />
+      <filter id={ids.shadow} x="-30%" y="-50%" width="160%" height="260%">
+        <feDropShadow dx="0" dy="2.5" stdDeviation="2.2" style={{ floodColor: 'var(--shadow-color)' }} floodOpacity="0.6" />
       </filter>
     </defs>
   )
@@ -108,7 +109,12 @@ export function MobileView(props: MobileViewProps) {
   const hookCount = collectHooks(puzzle.root).length
   // useId gives a unique text like ":r1:"; we strip the colons so it's safe inside url(#…).
   const uid = useId().replace(/:/g, '')
-  const ids: ShadingIds = { wood: `wood${uid}`, brass: `brass${uid}`, bead: `bead${uid}`, shadow: `shadow${uid}` }
+  const ids: ShadingIds = {
+    wood: `wood${uid}`,
+    brass: `brass${uid}`,
+    bead: `bead${uid}`,
+    shadow: `shadow${uid}`,
+  }
   const ctx: DrawContext = { layout, placement, dropTargetId, onHookTap, onWeightPointerDown, ids }
   const isHolding = selected !== null || isDragging
 
@@ -134,9 +140,12 @@ export function MobileView(props: MobileViewProps) {
         <ShadingDefs ids={ids} />
 
         {/* The ceiling mount the whole mobile hangs from: a wooden plate with two brass screws */}
-        <rect className="mobile-ceiling" x={-32} y={-8} width={64} height={11} rx={5.5} fill={`url(#${ids.wood})`} filter={`url(#${ids.shadow})`} />
-        <circle cx={-21} cy={-2.5} r={2.2} fill={`url(#${ids.brass})`} />
-        <circle cx={21} cy={-2.5} r={2.2} fill={`url(#${ids.brass})`} />
+        <rect className="mobile-ceiling" x={-34} y={-9} width={68} height={11} rx={5.5} fill={`url(#${ids.wood})`} filter={`url(#${ids.shadow})`} />
+        <rect className="mobile-bar-shine" x={-28} y={-8} width={56} height={1.3} rx={0.65} />
+        <circle cx={-23} cy={-3.5} r={2.4} fill={`url(#${ids.brass})`} />
+        <circle cx={23} cy={-3.5} r={2.4} fill={`url(#${ids.brass})`} />
+        {/* A small gold ring where the main string is tied on */}
+        <circle className="mobile-eyelet" cx={0} cy={3.5} r={2.6} />
         <NodeView node={puzzle.root} ctx={ctx} />
         {celebrate && <Sparkles x={x} y={y} width={width} height={height} />}
       </svg>
@@ -177,7 +186,8 @@ function BarView({ bar, ctx }: { bar: Bar; ctx: DrawContext }) {
 
       {/* Everything below is positioned relative to the pivot, then tilted */}
       <g className="mobile-swing" style={{ transform: `translate(0px, ${SIZES.barString}px) rotate(${tilt}deg)` }}>
-        {/* The beam: wood shading + soft shadow, then a thin light edge along the top */}
+        {/* The bar: polished bronze with a soft shadow, a bright line of light
+            along the top, and a darker edge underneath */}
         <rect
           className="mobile-bar"
           x={leftEnd - beam / 2}
@@ -188,38 +198,34 @@ function BarView({ bar, ctx }: { bar: Bar; ctx: DrawContext }) {
           fill={`url(#${ids.wood})`}
           filter={`url(#${ids.shadow})`}
         />
-        <rect
-          className="mobile-bar-shine"
-          x={leftEnd}
-          y={-beam / 2 + 1.2}
-          width={rightEnd - leftEnd}
-          height={1.6}
-          rx={0.8}
-        />
+        <rect className="mobile-bar-shine" x={leftEnd} y={-beam / 2 + 1} width={rightEnd - leftEnd} height={1.3} rx={0.65} />
 
-        {/* Notch marks: one small inset dot per notch on each arm */}
-        {notchPositions(bar.leftNotches - 1, -unit).map((nx) => (
-          <circle key={`l${nx}`} className="mobile-notch" cx={nx} cy={0.5} r={1.5} />
-        ))}
-        {notchPositions(bar.rightNotches - 1, unit).map((nx) => (
-          <circle key={`r${nx}`} className="mobile-notch" cx={nx} cy={0.5} r={1.5} />
+        {/* Notch marks: small engraved lines across the bar, one per notch
+            (the last notch is the tip, where the gold cap sits) */}
+        {[...notchPositions(bar.leftNotches - 1, -unit), ...notchPositions(bar.rightNotches - 1, unit)].map((nx) => (
+          <g key={nx}>
+            <line className="mobile-notch" x1={nx} y1={-beam / 2 + 1.5} x2={nx} y2={beam / 2 - 1.5} />
+            <line className="mobile-notch-light" x1={nx + 0.9} y1={-beam / 2 + 1.5} x2={nx + 0.9} y2={beam / 2 - 1.5} />
+          </g>
         ))}
 
-        {/* Brass rivets at both tips, where the strings hang from */}
-        <circle className="mobile-rivet" cx={leftEnd} cy={0} r={2.6} fill={`url(#${ids.brass})`} />
-        <circle className="mobile-rivet" cx={rightEnd} cy={0} r={2.6} fill={`url(#${ids.brass})`} />
+        {/* Gold end caps at both tips, where the strings hang from */}
+        <circle className="mobile-rivet" cx={leftEnd} cy={0} r={3.4} fill={`url(#${ids.brass})`} />
+        <circle className="mobile-rivet" cx={rightEnd} cy={0} r={3.4} fill={`url(#${ids.brass})`} />
 
         {/* Notch numbers, above the middle of each arm */}
-        <text className="mobile-notch-label" x={leftEnd / 2} y={-beam / 2 - 5}>
+        <text className="mobile-notch-label" x={leftEnd / 2} y={-beam / 2 - 6}>
           {bar.leftNotches}
         </text>
-        <text className="mobile-notch-label" x={rightEnd / 2} y={-beam / 2 - 5}>
+        <text className="mobile-notch-label" x={rightEnd / 2} y={-beam / 2 - 6}>
           {bar.rightNotches}
         </text>
 
-        {/* The pivot: a polished brass knob (turns green when solved) */}
-        <circle className="mobile-pivot" cx={0} cy={0} r={6} fill={`url(#${ids.brass})`} filter={`url(#${ids.shadow})`} />
-        <circle className="mobile-pivot-shine" cx={-1.8} cy={-2} r={1.6} />
+        {/* The pivot: a gold ball joint in a dark collar, with a bright
+            highlight. It glows (and turns emerald) when the puzzle is solved. */}
+        <circle className="mobile-pivot-collar" cx={0} cy={0} r={7.6} />
+        <circle className="mobile-pivot" cx={0} cy={0} r={6.2} fill={`url(#${ids.brass})`} filter={`url(#${ids.shadow})`} />
+        <circle className="mobile-pivot-shine" cx={-2} cy={-2.2} r={1.7} />
 
         {/* Children, hanging from each arm's tip. rotate(-tilt) undoes the
             bar's tilt so strings always hang straight down. */}
@@ -267,8 +273,9 @@ function HookView({ hook, ctx }: { hook: Hook; ctx: DrawContext }) {
       onPointerDown={(event) => weight !== undefined && ctx.onWeightPointerDown(event, hook.id, weight)}
     >
       <line className="mobile-string" x1={0} y1={0} x2={0} y2={hookTop} />
-      {/* A small brass "J" hook: down a little, then curve up to the left */}
-      <path className="mobile-hook" d={`M 0 ${hookTop} V ${hookBottom - 4} A 4 4 0 0 1 -8 ${hookBottom - 4}`} />
+      {/* A small gold ring the string is tied to, then the "J" hook below it */}
+      <circle className="mobile-eyelet" cx={0} cy={hookTop - 1.5} r={2} />
+      <path className="mobile-hook" d={`M 0 ${hookTop + 0.5} V ${hookBottom - 4} A 4 4 0 0 1 -8 ${hookBottom - 4} l 0.6 -1.6`} />
 
       {weight === undefined ? (
         // Empty hook: a dashed circle showing where a weight can go
@@ -295,13 +302,25 @@ function WeightShape({ weight, cx, cy, ids }: { weight: number; cx: number; cy: 
   const r = weightRadius(weight)
   return (
     <g className="mobile-weight">
-      {/* 1. the bead's colour, with a soft shadow underneath */}
+      {/* 1. the glossy coloured ball, with a soft shadow underneath */}
       <circle className="mobile-weight-disc" cx={cx} cy={cy} r={r} style={{ fill: `var(--weight-${weight})` }} filter={`url(#${ids.shadow})`} />
       {/* 2. light and shade on top, so it looks round */}
       <circle cx={cx} cy={cy} r={r} fill={`url(#${ids.bead})`} />
-      {/* 3. a crisp little shine near the top-left */}
-      <ellipse className="mobile-weight-shine" cx={cx - r * 0.36} cy={cy - r * 0.45} rx={r * 0.26} ry={r * 0.16} transform={`rotate(-30 ${cx - r * 0.36} ${cy - r * 0.45})`} />
-      <text className="mobile-weight-label" x={cx} y={cy}>
+      {/* 3. a soft light bouncing up from below (rim light) */}
+      <path
+        className="mobile-weight-rim"
+        d={`M ${cx - r * 0.62} ${cy + r * 0.5} A ${r * 0.8} ${r * 0.8} 0 0 0 ${cx + r * 0.62} ${cy + r * 0.5}`}
+      />
+      {/* 4. a crisp curved shine near the top-left */}
+      <ellipse
+        className="mobile-weight-shine"
+        cx={cx - r * 0.3}
+        cy={cy - r * 0.48}
+        rx={r * 0.36}
+        ry={r * 0.17}
+        transform={`rotate(-24 ${cx - r * 0.3} ${cy - r * 0.48})`}
+      />
+      <text className="mobile-weight-label" x={cx} y={cy + 0.5}>
         {weight}
       </text>
     </g>
@@ -309,7 +328,7 @@ function WeightShape({ weight, cx, cy, ids }: { weight: number; cx: number; cy: 
 }
 
 /**
- * The win celebration: little coloured sparkles burst out from the middle of
+ * The win celebration: little gold and coloured sparkles burst out from the middle of
  * the mobile and fade. Each sparkle gets its own direction through CSS
  * variables (--dx, --dy); the animation itself is in MobileView.css.
  */
@@ -329,7 +348,7 @@ function Sparkles({ x, y, width, height }: { x: number; y: number; width: number
         const style = {
           '--dx': `${dx.toFixed(1)}px`,
           '--dy': `${dy.toFixed(1)}px`,
-          fill: `var(--weight-${(i % 7) + 1})`,
+          fill: i % 3 === 0 ? 'var(--gold-light)' : `var(--weight-${(i % 9) + 1})`,
           animationDelay: `calc(var(--tilt-duration) + ${(i % 4) * 40}ms)`,
         } as CSSProperties
         // A 4-point star, drawn around (0, 0).

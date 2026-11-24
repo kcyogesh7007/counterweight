@@ -5,41 +5,34 @@
   -webkit-user-select: none;
   display: grid;
   justify-content: center; /* centre the grid of fixed-width columns */
-  gap: var(--space-2) var(--space-3);
+  gap: var(--space-3) var(--space-3);
+  padding: var(--space-1) 0;
 }
 
-/* Every slot is the same 44px square, so tapping is easy and nothing shifts. */
+/* Every slot is the same 48px square, so tapping is easy and nothing shifts. */
 .tray-slot {
   position: relative;
-  width: var(--tap-size);
-  height: var(--tap-size);
+  width: 48px;
+  height: 48px;
   display: grid;
   place-items: center;
 }
 
-/* A round hollow "carved" into the tray under each bead. When the bead is
-   hanging on the mobile, the empty hollow is what you see. */
+/* A dark round socket with a fine gold rim under each piece. When the piece
+   is hanging on the mobile, the empty socket is what you see. */
 .tray-slot::before {
   content: '';
   position: absolute;
   inset: 2px;
   border-radius: 50%;
-  background: rgb(60 40 10 / 0.07);
+  background: radial-gradient(circle at 50% 35%, #0f0c09, #1d1813 75%);
   box-shadow:
-    inset 0 2px 4px rgb(60 40 10 / 0.18),
-    0 1px 0 rgb(255 255 255 / 0.6);
+    inset 0 3px 6px rgb(0 0 0 / 0.8),
+    0 0 0 1px rgb(214 178 110 / 0.22),
+    0 1px 0 1px rgb(255 235 190 / 0.05);
 }
 
-@media (prefers-color-scheme: dark) {
-  .tray-slot::before {
-    background: rgb(0 0 0 / 0.22);
-    box-shadow:
-      inset 0 2px 4px rgb(0 0 0 / 0.45),
-      0 1px 0 rgb(255 255 255 / 0.05);
-  }
-}
-
-/* The bead sits on top of its hollow. */
+/* The piece sits on top of its socket. */
 .tray-disc,
 .tray-slot-empty {
   position: relative;
@@ -54,42 +47,93 @@
   touch-action: none;
 }
 
+/* A glossy game piece (see weightStyle.ts) with a soft rim, a light edge
+   underneath, and a soft shadow. It pops in when it arrives in the tray. */
 .tray-disc {
   display: grid;
   place-items: center;
   border-radius: 50%;
   color: var(--weight-text);
   font-weight: 800;
-  font-size: 15px;
-  /* A crisp darker edge and a soft shadow below: a bead resting on the panel */
+  font-size: 16px;
+  text-shadow: var(--number-outline);
   box-shadow:
-    inset 0 0 0 1.5px rgb(0 0 0 / 0.12),
-    0 2px 3px rgb(40 25 5 / 0.18);
-  transition: transform 150ms ease, box-shadow 150ms ease;
+    inset 0 0 0 1px rgb(30 15 0 / 0.4),
+    inset 0 -2px 3px rgb(255 255 255 / 0.22),
+    0 6px 10px rgb(0 0 0 / 0.55);
+  animation: disc-arrive 380ms var(--ease-settle);
+  transition:
+    transform 260ms var(--ease-settle),
+    box-shadow 260ms ease;
+}
+
+@keyframes disc-arrive {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (hover: hover) {
+  .tray-weight:hover .tray-disc {
+    transform: translateY(-2px);
+  }
 }
 
 .tray-weight:active .tray-disc {
   transform: scale(0.92);
 }
 
-/* The selected weight lifts up and gets a ring. */
+/* The selected piece springs up off the tray, gets a gold ring and glow,
+   and then floats gently while you choose a hook. */
 .tray-weight.is-selected .tray-disc {
-  transform: translateY(-4px) scale(1.08);
+  transform: translateY(-8px) scale(1.14);
   box-shadow:
-    inset 0 0 0 1.5px rgb(0 0 0 / 0.12),
-    0 0 0 3px var(--color-panel),
-    0 0 0 6px var(--color-accent),
-    0 8px 12px rgb(40 25 5 / 0.25);
+    inset 0 0 0 1px rgb(30 15 0 / 0.4),
+    inset 0 -2px 3px rgb(255 255 255 / 0.22),
+    0 0 0 2.5px var(--gold),
+    0 0 22px 4px rgb(240 200 120 / 0.45),
+    0 18px 18px rgb(0 0 0 / 0.55);
+  animation:
+    disc-pop 420ms var(--ease-settle),
+    disc-float 1.6s ease-in-out 420ms infinite;
+}
+
+@keyframes disc-pop {
+  0% {
+    transform: none;
+  }
+  40% {
+    transform: translateY(-12px) scale(1.2, 1.08);
+  }
+  100% {
+    transform: translateY(-8px) scale(1.14);
+  }
+}
+
+@keyframes disc-float {
+  0%,
+  100% {
+    transform: translateY(-8px) scale(1.14);
+  }
+  50% {
+    transform: translateY(-11px) scale(1.14);
+  }
 }
 
 /* While a weight is being dragged out, its slot shows a faint copy. */
 .tray-weight.is-lifted .tray-disc {
-  opacity: 0.25;
+  opacity: 0.22;
   transform: none;
+  animation: none;
   box-shadow: none;
 }
 
-/* The empty place a hung weight left behind: just the carved hollow shows. */
+/* The empty place a hung weight left behind: just the socket shows. */
 .tray-slot-empty {
   border-radius: 50%;
 }

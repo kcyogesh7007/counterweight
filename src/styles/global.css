@@ -1,148 +1,132 @@
 /*
   global.css — styles shared by the whole app.
 
+  STYLE: "premium stylized cartoon 2.5D" — a polished dark room with soft
+  coloured glows; smoked-glass panels with fine gold edges; rounded glossy
+  gold bars; bright, glossy, colourful weights; bouncy, satisfying motion.
+  Playful, but not childish. Depth comes from gradients, highlights and soft
+  shadows (no 3D engine).
+
   HOW THIS FILE IS ORGANISED
   1. Design tokens  : named colours, fonts, sizes and spacing (CSS "custom properties").
-  2. Dark mode      : the same token names with darker values.
-  3. Base reset     : removes odd browser defaults so every phone looks the same.
+  2. Base reset     : removes odd browser defaults so every phone looks the same.
+  3. Background     : the dark room, its golden glow and a faint grain.
   4. App layout     : the full-height, mobile-first column the game lives in.
-  5. Header         : logo, title, help button.
-  6. Game screen    : puzzle heading, tutorial tip, tray panel, controls.
-  7. Small helpers  : buttons, focus ring, screen-reader-only text, reduced motion.
+  5. Panels         : the reusable smoked-glass panel.
+  6. Header         : COUNTERWEIGHT wordmark, round icon buttons.
+  7. Game screen    : puzzle heading, difficulty gems, tutorial tip, tray, controls.
+  8. Buttons/helpers: gold buttons, focus ring, screen-reader-only text, reduced motion.
 
   A "custom property" looks like  --color-bg: #fff;
   and is used like                 background: var(--color-bg);
   Changing a token in one place changes it everywhere.
-
-  STYLE: "warm paper" — cream paper, ink-black lines, brass details, like a
-  well-printed puzzle book.
 */
 
-/* ---------- 1. Design tokens (light mode = default) ---------- */
+/* ---------- 1. Design tokens ---------- */
 :root {
   /* Surfaces */
-  --color-bg: #f4efe6;          /* cream paper */
-  --color-surface: #fffdf8;     /* cards (win card) */
-  --color-panel: #ebe3d4;       /* the tray panel, a shade darker than the paper */
-  --color-border: #ddd3c2;
+  --color-bg: #0e0c0a;                    /* the dark room */
+  --color-surface: #1f1a15;               /* solid dark card colour */
+  --color-panel: #17130f;                 /* recessed areas (sockets, wells) */
+  --color-border: rgb(214 178 110 / 0.28);/* fine gold hairline */
+  --glass-top: rgb(52 43 33 / 0.78);      /* smoked glass, lighter at the top… */
+  --glass-bottom: rgb(24 20 16 / 0.86);   /* …darker at the bottom */
 
   /* Text */
-  --color-text: #1f1c18;        /* ink */
-  --color-text-muted: #675f53;
+  --color-text: #f4e8d0;                  /* champagne */
+  --color-text-muted: #b8a68a;
 
-  /* Mobile drawing */
-  --color-bar: #27231e;         /* strings, logo */
-  --color-pivot: #c39a2b;       /* brass (logo, flat uses) */
-  --color-hook: #877e70;        /* empty hook outlines */
-  --color-notch: #6a6256;       /* notch numbers (dark enough to read at 12px) */
-  /* Walnut beams: light top edge -> darker underside */
-  --beam-light: #a7764a;
-  --beam-mid: #7d5432;
-  --beam-dark: #5a3a20;
-  /* Polished brass: pivots, rivets, screws, hooks */
-  --brass-light: #fbe9a8;
-  --brass-mid: #d1a640;
-  --brass-dark: #8f6a1c;
-  --shadow-color: #3c2a0a;
-  --hook-color: #8f6a1c;        /* deep brass: clear against the cream page */
+  /* Gold, bronze, champagne */
+  --gold-light: #fff2cc;
+  --gold: #e9c879;
+  --gold-mid: #c9a14e;
+  --bronze: #8d6629;
+  --bronze-deep: #4a3414;
+
+  /* Names used by the mobile drawing (MobileView.tsx / .css) */
+  --color-bar: #e9d6ae;                   /* strings, logo lines */
+  --color-pivot: #e9c879;
+  --color-hook: #8e7c60;                  /* empty-hook outlines */
+  --color-notch: #e2cfa6;                 /* notch numbers */
+  --beam-light: #fff1b8;                  /* rounded glossy gold bars */
+  --beam-mid: #e9b949;
+  --beam-dark: #9c6a14;
+  --brass-light: #fff6d6;                 /* gold joints, caps, hooks */
+  --brass-mid: #e2b85c;
+  --brass-dark: #7a5718;
+  --shadow-color: #000000;
+  --hook-color: #e2b85c;
 
   /* Accent + feedback */
-  --color-accent: #2f5ea8;      /* ink blue: selected weight ring, buttons, links */
-  --color-accent-text: #ffffff;
-  --color-success: #2b8a5c;     /* "balanced!" moment */
+  --color-accent: #f0cf80;                /* gold: selection rings, links, focus */
+  --color-accent-text: #241806;           /* dark text on gold buttons */
+  --color-success: #5fd3a6;               /* emerald: solved pivots, "Balanced!" glow */
 
-  /* Weight colours: one per number 1–10 (flat, friendly, distinct).
-     Every one keeps the dark number readable (contrast 4.5 : 1 or more). */
-  --weight-1: #f2b134;
-  --weight-2: #ef7d57;
-  --weight-3: #e25b7a;
-  --weight-4: #c27ade;
-  --weight-5: #8287ef;
-  --weight-6: #3b9be0;
-  --weight-7: #2bb3a3;
-  --weight-8: #5bb85c;
-  --weight-9: #a4b83a;
-  --weight-10: #a88a7e;
-  --weight-text: #1f1c18;       /* dark numbers stay readable on every weight colour */
+  /* Weight colours: bright, glossy, one per number 1–10. Numbers are white
+     with a dark outline, so they stay readable on every colour. */
+  --weight-1: #ffb21f;                    /* sunflower */
+  --weight-2: #ff7438;                    /* tangerine */
+  --weight-3: #ff4766;                    /* cherry */
+  --weight-4: #b55cf6;                    /* grape */
+  --weight-5: #5d6bff;                    /* blueberry */
+  --weight-6: #22b0f5;                    /* sky */
+  --weight-7: #16cc9c;                    /* mint */
+  --weight-8: #78d148;                    /* lime */
+  --weight-9: #e3c52c;                    /* lemon */
+  --weight-10: #c5865a;                   /* caramel */
+  --weight-text: #ffffff;
+  --weight-outline: #1e1206;
+  /* The dark outline for white numbers in HTML (tray, dragged piece) */
+  --number-outline:
+    -1px -1px 0 var(--weight-outline), 1px -1px 0 var(--weight-outline),
+    -1px 1px 0 var(--weight-outline), 1px 1px 0 var(--weight-outline),
+    0 2px 2px rgb(0 0 0 / 0.5);
 
   /* Typography.
-     Body text uses the phone's own font (loads instantly, looks native).
-     Titles and big numbers use Fraunces, a friendly serif bundled with the
-     game (see main.tsx), with Georgia as a backup while it loads. */
+     Fraunces (an elegant serif, bundled with the game) for the wordmark,
+     titles and big numbers; the phone's own font for everything else. */
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-display: "Fraunces Variable", Georgia, "Times New Roman", serif;
-  --font-size-sm: 0.875rem;     /* 14px */
-  --font-size-md: 1rem;         /* 16px */
-  --font-size-lg: 1.25rem;      /* 20px */
-  --font-size-xl: 1.75rem;      /* 28px */
-  --font-size-2xl: 2.25rem;     /* 36px */
+  --font-size-sm: 0.875rem;               /* 14px */
+  --font-size-md: 1rem;                   /* 16px */
+  --font-size-lg: 1.25rem;                /* 20px */
+  --font-size-xl: 1.75rem;                /* 28px */
+  --font-size-2xl: 2.4rem;                /* 38px */
 
   /* Spacing scale (multiples of 4px) */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
-  --space-4: 16px;              /* standard side gutter on phones */
+  --space-4: 16px;                        /* standard side gutter on phones */
   --space-5: 20px;
   --space-6: 24px;
   --space-8: 32px;
 
   /* Shapes */
-  --radius-sm: 10px;
+  --radius-sm: 12px;
   --radius-md: 18px;
-  --radius-lg: 24px;
+  --radius-lg: 28px;
   --radius-full: 999px;
-  --shadow-card: 0 1px 2px rgb(60 40 10 / 0.06), 0 8px 24px rgb(60 40 10 / 0.08);
+  --shadow-card:
+    0 1px 0 rgb(255 240 210 / 0.06) inset,
+    0 18px 40px rgb(0 0 0 / 0.55),
+    0 2px 6px rgb(0 0 0 / 0.4);
 
   /* Minimum finger-friendly tap size (Apple & Google both recommend ~44px) */
   --tap-size: 44px;
 
   /* Widest the game column may get on desktop */
-  --max-width: 520px;
+  --max-width: 540px;
 
   /* Animation speed for bar tilts */
-  --tilt-duration: 550ms;
+  --tilt-duration: 700ms;
+  /* A springy "settle" easing used across the game: overshoots a little, then lands */
+  --ease-settle: cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  color-scheme: light;
+  color-scheme: dark;
 }
 
-/* ---------- 2. Dark mode ----------
-   Follows the phone/computer's own dark-mode setting automatically.
-   A warm dark brown-black, so it still feels like the same game. */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #1a1815;
-    --color-surface: #24211d;
-    --color-panel: #2b2823;
-    --color-border: #3a3630;
-
-    --color-text: #f2ede4;
-    --color-text-muted: #aaa194;
-
-    --color-bar: #ece5d8;
-    --color-pivot: #ddb54a;
-    --color-hook: #918878;
-    --color-notch: #9d9486;
-    /* Lighter maple beams show up well on the dark background */
-    --beam-light: #e2bd86;
-    --beam-mid: #c0915a;
-    --beam-dark: #8e6436;
-    --brass-light: #fff1bf;
-    --brass-mid: #e0b955;
-    --brass-dark: #9a7424;
-    --shadow-color: #000000;
-    --hook-color: #e0b955;
-
-    --color-accent: #7ea6ec;
-    --color-accent-text: #10172a;
-    --color-success: #5cc493;
-
-    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
-
-    color-scheme: dark;
-  }
-}
-
-/* ---------- 3. Base reset ---------- */
+/* ---------- 2. Base reset ---------- */
 
 /* Make width/height include padding and border — far easier to reason about. */
 *,
@@ -160,10 +144,7 @@ body {
 body {
   min-height: 100vh;
   min-height: 100dvh; /* "dynamic" height: correct on phones with sliding address bars */
-  /* Paper, with a very soft light glow at the top */
-  background:
-    radial-gradient(ellipse 120% 60% at 50% 0%, rgb(255 255 255 / 0.55), transparent 70%),
-    var(--color-bg);
+  background-color: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-sans);
   font-size: var(--font-size-md);
@@ -176,41 +157,6 @@ body {
   -webkit-tap-highlight-color: transparent;
   /* Never let the page scroll sideways on a phone */
   overflow-x: hidden;
-}
-
-@media (prefers-color-scheme: dark) {
-  body {
-    background:
-      radial-gradient(ellipse 120% 60% at 50% 0%, rgb(255 240 210 / 0.05), transparent 70%),
-      var(--color-bg);
-  }
-}
-
-/* Paper grain: a very faint noise texture over the whole page, made by an
-   SVG "turbulence" filter (no image file needed). pointer-events: none means
-   it never gets in the way of taps. */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.22;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.4  0 0 0 0 0.3  0 0 0 0 0.15  0 0 0 0.45 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-}
-
-@media (prefers-color-scheme: dark) {
-  body::before {
-    opacity: 0.2;
-    mix-blend-mode: screen;
-  }
-}
-
-/* Everything else sits above the grain. */
-#root {
-  position: relative;
-  z-index: 1;
 }
 
 h1,
@@ -236,6 +182,33 @@ svg {
   display: block; /* removes a small gap browsers put under inline SVGs */
 }
 
+/* ---------- 3. Background ----------
+   A dark room with a warm golden glow near the top (where the mobile hangs),
+   fading to near-black at the edges, plus a very faint film grain.
+   Both layers are fixed, so they stay put while the page scrolls. */
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::before {
+  background:
+    radial-gradient(ellipse 70% 45% at 50% 30%, rgb(214 160 80 / 0.22), rgb(214 160 80 / 0) 70%),
+    radial-gradient(circle at 12% 18%, rgb(150 90 255 / 0.13), rgb(150 90 255 / 0) 32%),
+    radial-gradient(circle at 92% 62%, rgb(40 210 190 / 0.1), rgb(40 210 190 / 0) 34%),
+    radial-gradient(ellipse 120% 80% at 50% 0%, #2a2219 0%, #15110d 55%, #090807 100%);
+}
+
+body::after {
+  opacity: 0.12;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
 /* ---------- 4. App layout ----------
    Mobile first: the column fills the whole screen height.
      header   (top)
@@ -243,6 +216,8 @@ svg {
      tray     (bottom, near your thumbs)
    On wider screens it stops growing at --max-width and sits in the middle. */
 #root {
+  position: relative;
+  z-index: 1; /* above the background layers */
   min-height: 100vh;
   min-height: 100dvh;
   display: flex;
@@ -266,124 +241,209 @@ svg {
   .app {
     padding-top: var(--space-6);
     padding-bottom: var(--space-8);
+    gap: var(--space-5);
   }
 }
 
-/* ---------- 5. Header ---------- */
+/* ---------- 5. Panels ----------
+   Smoked glass: a translucent dark gradient, a fine gold hairline, a soft
+   light along the top edge, and a deep shadow underneath. */
+.card,
+.tray-panel {
+  position: relative;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--glass-top), var(--glass-bottom));
+  box-shadow: var(--shadow-card);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+/* A thin line of gold light along the top edge of every panel */
+.card::after,
+.tray-panel::after {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 14%;
+  right: 14%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(255 228 170 / 0.75), transparent);
+  pointer-events: none;
+}
+
+.card {
+  padding: var(--space-5);
+}
+
+/* ---------- 6. Header ---------- */
 
 .app-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
+  min-height: var(--tap-size);
 }
 
 .brand {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  min-width: 0;
 }
 
 .brand-logo {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgb(0 0 0 / 0.6));
 }
 
+/* COUNTERWEIGHT: gold serif capitals with wide spacing and a metallic sheen */
 .app-title {
   font-family: var(--font-display);
-  font-size: 1.6rem;
-  font-weight: 650;
-  letter-spacing: -0.01em;
+  font-size: 0.98rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
   line-height: 1;
+  white-space: nowrap;
+  background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold) 45%, var(--gold-mid) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.6));
 }
 
-/* Round "?" button (How to play) */
-.icon-button {
-  width: var(--tap-size);
-  height: var(--tap-size);
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  margin-right: calc(-1 * var(--space-1));
-  border: 1.5px solid var(--color-border);
-  border-radius: 50%;
-  background: var(--color-surface);
-  box-shadow: 0 2px 6px rgb(60 40 10 / 0.1);
-  color: var(--color-text);
-  font-family: var(--font-display);
-  font-size: var(--font-size-lg);
-  font-weight: 650;
-  cursor: pointer;
-  transition: transform 120ms ease, border-color 120ms ease;
+/* Very narrow (older) phones: drop the small logo and tighten the letters */
+@media (max-width: 349px) {
+  .brand-logo {
+    display: none;
+  }
+  .app-title {
+    font-size: 0.9rem;
+    letter-spacing: 0.1em;
+  }
 }
 
-.icon-button:active {
-  transform: scale(0.94);
+/* Roomier screens get a bigger, more widely spaced wordmark */
+@media (min-width: 400px) {
+  .app-title {
+    font-size: 1.15rem;
+    letter-spacing: 0.2em;
+  }
 }
 
-/* ← Back, at the left of the header on every screen except home. */
+@media (min-width: 600px) {
+  .app-title {
+    font-size: 1.35rem;
+    letter-spacing: 0.24em;
+  }
+}
+
+/* Round dark-glass buttons with a gold rim: "?", ← Back */
+.icon-button,
 .back-button {
   width: var(--tap-size);
   height: var(--tap-size);
   flex-shrink: 0;
   display: grid;
   place-items: center;
-  margin-left: calc(-1 * var(--space-3));
-  border: none;
+  border: 1px solid var(--color-border);
   border-radius: 50%;
-  background: none;
-  color: var(--color-text);
+  background: radial-gradient(circle at 35% 25%, #3a3127, #1a1612 70%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 235 190 / 0.12),
+    0 4px 10px rgb(0 0 0 / 0.45);
+  color: var(--gold);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
   cursor: pointer;
+  transition:
+    transform 140ms ease,
+    box-shadow 200ms ease,
+    border-color 200ms ease;
+}
+
+.back-button {
+  margin-left: -6px;
 }
 
 .back-button svg {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
 }
 
+@media (hover: hover) {
+  .icon-button:hover,
+  .back-button:hover {
+    border-color: rgb(233 200 121 / 0.6);
+    box-shadow:
+      inset 0 1px 0 rgb(255 235 190 / 0.12),
+      0 0 16px rgb(233 200 121 / 0.25),
+      0 4px 10px rgb(0 0 0 / 0.45);
+  }
+}
+
+.icon-button:active,
 .back-button:active {
-  background: var(--color-panel);
+  transform: scale(0.93);
 }
 
-/* A text-style button, e.g. "Skip" in the header during the tutorial. */
+/* A text-style button, e.g. "Skip", "Replay". */
 .link-button {
   flex-shrink: 0;
   min-height: var(--tap-size);
   padding: 0 var(--space-2);
-  margin-right: calc(-1 * var(--space-2)); /* line the text up with the right edge */
   border: none;
   background: none;
   color: var(--color-accent);
   font-size: var(--font-size-sm);
-  font-weight: 700;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   cursor: pointer;
+  transition: color 160ms ease;
 }
 
-/* ---------- 6. Game screen ---------- */
+@media (hover: hover) {
+  .link-button:hover {
+    color: var(--gold-light);
+  }
+}
+
+/* ---------- 7. Game screen ---------- */
 
 /* The puzzle area grows to fill spare space, with the mobile centred in it. */
 .play-area {
+  position: relative;
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: var(--space-3);
-  /* A soft spotlight behind the mobile, like a display in a shop window */
-  background: radial-gradient(ellipse 75% 55% at 50% 58%, rgb(255 255 255 / 0.6), rgb(255 255 255 / 0) 72%);
 }
 
-@media (prefers-color-scheme: dark) {
-  .play-area {
-    background: radial-gradient(ellipse 75% 55% at 50% 58%, rgb(255 225 170 / 0.07), rgb(255 225 170 / 0) 72%);
-  }
+/* A warm pool of light right behind the mobile */
+.play-area::before {
+  content: '';
+  position: absolute;
+  inset: 10% 0 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse 55% 50% at 50% 55%, rgb(240 190 110 / 0.13), rgb(240 190 110 / 0) 70%);
 }
 
+/* Puzzle heading: "No. 2 · Tue 24 Nov" with a fine gold rule on each side */
 .puzzle-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
   text-align: center;
 }
 
-/* The title with a short gold line on each side:  ——  #1 · Mon 23 Nov  —— */
 .puzzle-title {
   display: flex;
   align-items: center;
@@ -391,145 +451,160 @@ svg {
   gap: var(--space-3);
   font-family: var(--font-display);
   font-size: var(--font-size-lg);
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--color-text);
 }
 
 .puzzle-title::before,
 .puzzle-title::after {
   content: '';
-  width: 28px;
-  height: 1.5px;
-  border-radius: 1px;
-  background: linear-gradient(to right, transparent, var(--brass-mid));
+  width: 32px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--gold-mid));
 }
 
 .puzzle-title::after {
-  background: linear-gradient(to left, transparent, var(--brass-mid));
+  background: linear-gradient(to left, transparent, var(--gold-mid));
 }
 
-/* "Monday · ●○○○○○○" */
+/* Difficulty: "MONDAY" + seven small gold gems */
 .difficulty {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
-  margin-top: var(--space-1);
+  gap: var(--space-3);
   color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
 .difficulty-pips {
   display: inline-flex;
-  gap: 4px;
+  gap: 5px;
 }
 
+/* Each gem is a small diamond (a rotated square) */
 .difficulty-pip {
   width: 7px;
   height: 7px;
-  border-radius: 50%;
-  border: 1.5px solid var(--color-notch);
+  transform: rotate(45deg);
+  border: 1px solid rgb(201 161 78 / 0.55);
+  background: transparent;
 }
 
 .difficulty-pip.is-on {
-  background: var(--color-notch);
+  border-color: var(--gold);
+  background: linear-gradient(135deg, var(--gold-light), var(--gold-mid));
+  box-shadow: 0 0 6px rgb(233 200 121 / 0.55);
 }
 
-/* Tutorial instruction: a soft "tip" box above the mobile. */
+/* Tutorial instruction: a glass tip box above the mobile. */
 .intro {
   max-width: 36ch;
   margin: 0 auto;
   padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-sm);
-  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, var(--glass-top), var(--glass-bottom));
   text-align: center;
   font-size: var(--font-size-md);
+  color: var(--color-text);
 }
 
-/* The tray: a soft panel near the bottom of the screen. */
+/* The tray: a glass panel near the bottom of the screen. */
 .tray-panel {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-4);
-  border-radius: var(--radius-lg);
-  /* Slightly lighter at the top, a fine light edge, and a soft shadow: a raised wooden tray */
-  background: linear-gradient(180deg, color-mix(in srgb, var(--color-panel) 80%, white), var(--color-panel));
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.55),
-    0 1px 2px rgb(60 40 10 / 0.08),
-    0 10px 28px rgb(60 40 10 / 0.1);
-}
-
-@media (prefers-color-scheme: dark) {
-  .tray-panel {
-    background: linear-gradient(180deg, color-mix(in srgb, var(--color-panel) 96%, white), var(--color-panel));
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.06),
-      0 10px 28px rgb(0 0 0 / 0.35);
-  }
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-4) var(--space-3);
 }
 
 .hint {
   text-align: center;
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
+  letter-spacing: 0.02em;
   min-height: 1.5em; /* keeps the layout still when the text changes */
 }
 
 .controls {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--space-2);
   min-height: var(--tap-size);
+  padding-top: var(--space-3);
+  border-top: 1px solid rgb(214 178 110 / 0.14);
 }
 
+/* Timer and move counter: small recessed chips with gold icons */
 .stat {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  background: var(--color-panel);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.6), 0 1px 0 rgb(255 235 190 / 0.05);
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
 }
 
 .stat svg {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
+  color: var(--gold);
 }
 
 .stat strong {
   color: var(--color-text);
+  font-weight: 650;
   font-variant-numeric: tabular-nums;
 }
 
-/* Reset: a small round icon button on the right. */
+/* Reset: a round metallic button with a gold icon. */
 .reset-button {
   margin-left: auto;
   width: var(--tap-size);
   height: var(--tap-size);
   display: grid;
   place-items: center;
-  border: none;
+  border: 1px solid var(--color-border);
   border-radius: 50%;
-  background: var(--color-surface);
-  color: var(--color-text);
-  box-shadow: 0 1px 0 rgb(255 255 255 / 0.5) inset, 0 2px 6px rgb(60 40 10 / 0.14);
+  background: radial-gradient(circle at 35% 25%, #3a3127, #1a1612 70%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 235 190 / 0.12),
+    0 4px 10px rgb(0 0 0 / 0.45);
+  color: var(--gold);
   cursor: pointer;
-  transition: transform 120ms ease, opacity 120ms ease;
+  transition:
+    transform 160ms ease,
+    box-shadow 200ms ease,
+    opacity 160ms ease;
 }
 
 .reset-button svg {
-  width: 20px;
-  height: 20px;
+  width: 19px;
+  height: 19px;
 }
 
-.reset-button:active {
-  transform: rotate(-40deg) scale(0.94);
+@media (hover: hover) {
+  .reset-button:hover:not(:disabled) {
+    box-shadow:
+      inset 0 1px 0 rgb(255 235 190 / 0.12),
+      0 0 16px rgb(233 200 121 / 0.25),
+      0 4px 10px rgb(0 0 0 / 0.45);
+  }
+}
+
+.reset-button:active:not(:disabled) {
+  transform: rotate(-60deg) scale(0.93);
 }
 
 .reset-button:disabled {
   opacity: 0.35;
   cursor: default;
-  transform: none;
 }
 
 /* The weight following the pointer while dragging. "position: fixed" places it
@@ -537,53 +612,71 @@ svg {
 .drag-ghost {
   position: fixed;
   z-index: 10;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(1.08);
   pointer-events: none; /* so we can see which hook is underneath it */
   display: grid;
   place-items: center;
   border-radius: 50%;
   color: var(--weight-text);
   font-weight: 800;
-  font-size: 15px;
+  font-size: 17px;
+  text-shadow: var(--number-outline);
   box-shadow:
-    inset 0 0 0 1.5px rgb(0 0 0 / 0.12),
-    0 8px 18px rgb(40 25 5 / 0.3);
+    inset 0 0 0 1.5px rgb(0 0 0 / 0.3),
+    0 0 20px rgb(255 255 255 / 0.18),
+    0 16px 22px rgb(0 0 0 / 0.6);
 }
 
-/* ---------- 7. Small helpers ---------- */
+/* ---------- 8. Buttons and helpers ---------- */
 
-.card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
-  padding: var(--space-5);
-}
-
+/* The main gold button ("Next level", "More puzzles"…): polished metal with
+   a bright top edge, a soft glow, and a satisfying press. */
 .button {
-  min-height: var(--tap-size);
-  padding: 0 var(--space-6);
-  border: none;
+  min-height: 48px;
+  padding: 0 var(--space-8);
+  border: 1px solid rgb(255 236 190 / 0.55);
   border-radius: var(--radius-full);
-  /* A little depth: lighter at the top, a fine highlight, and a coloured glow */
-  background: linear-gradient(180deg, color-mix(in srgb, var(--color-accent) 82%, white), var(--color-accent));
+  background: linear-gradient(180deg, #fbe3a2 0%, #e7c16d 45%, #c79a45 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.65),
+    inset 0 -2px 0 rgb(120 80 20 / 0.35),
+    0 6px 18px rgb(214 160 70 / 0.28),
+    0 3px 6px rgb(0 0 0 / 0.45);
   color: var(--color-accent-text);
   font-weight: 700;
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.3),
-    0 4px 14px color-mix(in srgb, var(--color-accent) 35%, transparent);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.95rem;
   cursor: pointer;
-  transition: transform 120ms ease;
+  transition:
+    transform 140ms ease,
+    box-shadow 220ms ease,
+    filter 220ms ease;
+}
+
+@media (hover: hover) {
+  .button:hover {
+    filter: brightness(1.06);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.65),
+      inset 0 -2px 0 rgb(120 80 20 / 0.35),
+      0 8px 26px rgb(214 160 70 / 0.42),
+      0 3px 6px rgb(0 0 0 / 0.45);
+  }
 }
 
 .button:active {
-  transform: scale(0.97);
+  transform: translateY(1px) scale(0.98);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.5),
+    inset 0 -1px 0 rgb(120 80 20 / 0.35),
+    0 2px 8px rgb(214 160 70 / 0.25);
 }
 
 /* Visible focus ring for keyboard users (not shown on finger taps). */
 :focus-visible {
-  outline: 3px solid var(--color-accent);
-  outline-offset: 2px;
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
 }
 
 /* Text that screen readers announce but sighted users don't see. */
