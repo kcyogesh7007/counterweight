@@ -135,6 +135,8 @@ How `build-daily` works:
    - then by **solver steps**: fewer is easier.
 4. **It splits them into 7 groups.** Mondays take puzzles from the easiest group, and Sundays from the hardest.
 
+**Replacing one day's puzzle** (e.g. one that turned out too hard): put it in `src/data/daily-overrides.json` (`{"2": { weights, root, solution }}`), then run `npm run build-daily` and `npm run verify`. Overrides are applied last, so no other day (and no level) changes. Day #2 was replaced this way on 24 Nov 2026 with a gentler puzzle.
+
 **Changing a day that hasn't happened yet** is fine: rebuild or edit `daily.json`, then run `npm run verify`. **Don't change past days**, or players' saved results won't match the puzzle they solved.
 
 `npm run verify` checks every puzzle in every file:

@@ -13,6 +13,9 @@
 //        fewer solver steps                    = easier.
 //   4. It splits that list into 7 equal groups: Monday gets puzzles from the
 //      easiest group, Tuesday the next, ... Sunday the hardest.
+//   5. Finally, any day listed in src/data/daily-overrides.json is replaced by
+//      the puzzle given there (e.g. a day that turned out too hard). This is
+//      done LAST, so it never changes which puzzles the other days get.
 //
 // The seed is fixed, so running it again gives exactly the same year.
 // Always run `npm run verify` afterwards.
@@ -74,6 +77,14 @@ for (let day = 1; day <= DAYS; day++) {
     puzzle = next.puzzle
   }
   days.push({ ...puzzle, id: `day-${day}`, title: `Day ${day}` })
+}
+
+// 5. Hand-picked replacements for particular days.
+const overrides = JSON.parse(readFileSync('src/data/daily-overrides.json', 'utf8')) as Record<string, Omit<Puzzle, 'id' | 'title'>>
+for (const [dayText, puzzle] of Object.entries(overrides)) {
+  const day = Number(dayText)
+  days[day - 1] = { ...puzzle, id: `day-${day}`, title: `Day ${day}` }
+  console.log(`Day #${day} replaced by daily-overrides.json`)
 }
 
 // One puzzle per line: compact, but still readable and easy to compare.

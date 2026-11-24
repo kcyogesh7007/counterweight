@@ -34,9 +34,14 @@ const SEED = 6060
 
 // Puzzles we must not repeat.
 const taken = new Set<string>()
-for (const file of ['src/data/daily.json', 'src/data/tutorial.json']) {
-  for (const p of JSON.parse(readFileSync(file, 'utf8')) as Puzzle[]) taken.add(puzzleFingerprint(p.root))
-}
+// (Days replaced by daily-overrides.json are skipped here, and the original
+// hand-picked puzzles are counted instead, so the levels stay exactly the
+// same as when they were first built. The override puzzles were chosen to
+// not match any level.)
+const overriddenDays = new Set(Object.keys(JSON.parse(readFileSync('src/data/daily-overrides.json', 'utf8'))).map(Number))
+const daily = (JSON.parse(readFileSync('src/data/daily.json', 'utf8')) as Puzzle[]).filter((_, i) => !overriddenDays.has(i + 1))
+const others = ['src/data/puzzles.json', 'src/data/tutorial.json'].flatMap((file) => JSON.parse(readFileSync(file, 'utf8')) as Puzzle[])
+for (const p of [...daily, ...others]) taken.add(puzzleFingerprint(p.root))
 
 const random = makeRandom(SEED)
 const levels: Puzzle[] = []
