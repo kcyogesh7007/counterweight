@@ -11,8 +11,8 @@
 //   archive   past daily puzzles (playing them late never changes your streak)
 //
 // Flow:
-//   first visit:  picture cards -> practice puzzles 1, 2, 3 -> today's puzzle
-//   later visits: home -> today's puzzle (or another mode)
+//   every visit opens on home. How to play opens from the "?" button (and,
+//   until it's been seen once, a "New here?" link on home); it ends back on home.
 // The ← button (and the phone's own back gesture) returns to the previous
 // screen; see hooks/useScreens.ts.
 //
@@ -55,7 +55,7 @@ type Screen =
 const HOME: Screen = { kind: 'home' }
 
 function App() {
-  const screens = useScreens<Screen>(() => (hasSeenTutorial() ? HOME : { kind: 'tutorialIntro' }), HOME)
+  const screens = useScreens<Screen>(() => HOME, HOME)
   const { go, replace, back } = screens
   // Safety net: a screen restored after a reload that no longer makes sense shows home.
   const screen = isKnownScreen(screens.screen) ? screens.screen : HOME
@@ -72,11 +72,10 @@ function App() {
 
   const inTutorial = screen.kind === 'tutorial' || screen.kind === 'tutorialIntro'
 
+  /** Finishing or skipping How to play: remember it, and return to home. */
   function finishTutorial() {
     markTutorialSeen()
-    // Put home "behind" today's puzzle, so Back leads home (not out of the site).
-    replace(HOME)
-    go({ kind: 'daily' })
+    back()
   }
 
   return (
@@ -130,6 +129,8 @@ function App() {
           onOpenLevels={() => go({ kind: 'levels' })}
           onOpenPractice={() => go({ kind: 'practice' })}
           onOpenArchive={() => go({ kind: 'archive' })}
+          // Until How to play has been seen once, home offers it with a small link
+          onHowToPlay={hasSeenTutorial() ? undefined : () => go({ kind: 'tutorialIntro' })}
         />
       )}
 
@@ -211,7 +212,7 @@ function isKnownScreen(screen: Screen): boolean {
   }
 }
 
-/** One tutorial step. The last step's button leads to today's puzzle. */
+/** One tutorial step. The last step's button ends the tutorial (back to home). */
 function TutorialStep({ step, onNext, onDone }: { step: number; onNext: (next: number) => void; onDone: () => void }) {
   const isLast = step === TUTORIAL_PUZZLES.length - 1
   const puzzle = TUTORIAL_PUZZLES[step]
@@ -220,7 +221,7 @@ function TutorialStep({ step, onNext, onDone }: { step: number; onNext: (next: n
       key={puzzle.id}
       puzzle={puzzle}
       isTutorial
-      winButtonLabel={isLast ? "Play today's puzzle" : 'Next'}
+      winButtonLabel={isLast ? 'Done' : 'Next'}
       onWinButton={isLast ? onDone : () => onNext(step + 1)}
     />
   )

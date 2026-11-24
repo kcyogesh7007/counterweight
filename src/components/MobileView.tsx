@@ -25,7 +25,7 @@
 import { useId, useMemo, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
 import { collectBars, collectHooks, getTiltDegrees } from '../game/balance.ts'
 import { SIZES, computeLayout, weightRadius, type MobileLayout } from '../game/layout.ts'
-import type { Hint } from '../game/hints.ts'
+import { hintGhosts, type Hint } from '../game/hints.ts'
 import type { Bar, Hook, MobileNode, Placement, Puzzle } from '../game/types.ts'
 import './MobileView.css'
 
@@ -47,6 +47,8 @@ type DrawContext = {
   ids: ShadingIds
   /** The hint being shown (a hook or bar to highlight), or null. */
   hint: Hint | null
+  /** The hint's gold numbers: { hookId: weight } (see hintGhosts in hints.ts). */
+  ghosts: Record<string, number>
   /** True for a picture only (e.g. the How-to-play cards): hooks can't be tapped or focused. */
   readOnly: boolean
 }
@@ -124,7 +126,7 @@ export function MobileView(props: MobileViewProps) {
     bead: `bead${uid}`,
     shadow: `shadow${uid}`,
   }
-  const ctx: DrawContext = { layout, placement, dropTargetId, onHookTap, onWeightPointerDown, ids, hint, readOnly }
+  const ctx: DrawContext = { layout, placement, dropTargetId, onHookTap, onWeightPointerDown, ids, hint, ghosts: hint ? hintGhosts(hint) : {}, readOnly }
   const isHolding = selected !== null || isDragging
 
   return (
@@ -299,9 +301,11 @@ function HookView({ hook, ctx }: { hook: Hook; ctx: DrawContext }) {
   const classes = ['mobile-hook-group']
   if (weight !== undefined) classes.push('has-weight') // can be dragged away
   if (ctx.dropTargetId === hook.id) classes.push('is-drop-target')
-  // Hint pointing at this hook: a wrong weight here, or "the N goes here"
-  const hookHint = ctx.hint && ctx.hint.kind !== 'foothold' && ctx.hint.hookId === hook.id ? ctx.hint : null
-  if (hookHint) classes.push('is-hinted')
+  // While dragging over this hook, its weight is only a preview: drawn see-through
+  if (ctx.dropTargetId === hook.id && weight !== undefined) classes.push('is-preview')
+  // Hint pointing at this hook: a wrong weight on it, or a gold "the N goes here"
+  const ghost = weight === undefined ? ctx.ghosts[hook.id] : undefined
+  if ((ctx.hint?.kind === 'wrong-weight' && ctx.hint.hookId === hook.id) || ghost !== undefined) classes.push('is-hinted')
 
   return (
     <g
@@ -324,10 +328,10 @@ function HookView({ hook, ctx }: { hook: Hook; ctx: DrawContext }) {
         // Empty hook: a dashed circle showing where a weight can go
         <>
           <circle className="mobile-empty" cx={0} cy={hookBottom + SIZES.emptyRadius} r={SIZES.emptyRadius} />
-          {/* "The N goes here": a faint ghost of the number in the empty circle */}
-          {hookHint?.kind === 'place' && (
+          {/* Hint "the N goes here": a gold number in the empty circle */}
+          {ghost !== undefined && (
             <text className="mobile-hint-ghost" x={0} y={hookBottom + SIZES.emptyRadius}>
-              {hookHint.weight}
+              {ghost}
             </text>
           )}
         </>

@@ -89,7 +89,9 @@ scripts/
 
 ## How to play (tutorial)
 
-New players (and anyone who taps **?**) first see three picture cards
+The game always opens on the home screen. How to play opens from the **?**
+button (and, until it has been seen once, a "New here? How to play" link on
+home), and it ends back on home. It starts with three picture cards
 (`src/components/TutorialIntro.tsx`): make every bar level, further out pulls
 harder (weight × notches), and a bar carries everything below it. Then come
 three small practice puzzles (`src/data/tutorial.json`). During those, a live
@@ -107,11 +109,11 @@ and the choice is remembered in this browser (`counterweight:sound`).
 
 Every puzzle (except the tutorial) has **one hint**, from the lightbulb button in the tray. The hint picks the most useful nudge (see `src/game/hints.ts`):
 
-1. a weight on the wrong hook: that hook glows ("the 3 is in the wrong place");
-2. otherwise, an untouched bar that only one pair of weights fits: that bar glows;
-3. otherwise, one correct weight is shown on an empty hook ("the 7 goes here").
+1. a weight on the wrong hook: that hook glows, and a gold number shows where it belongs ("the 3 is on the wrong hook. Move it to the gold 3.");
+2. otherwise, an untouched bar that only one pair of weights fits: the bar glows, both weights are shown in gold, with the sum that proves it ("3 × 4 = 4 × 3, so the 3 and the 4 go here.");
+3. otherwise, one correct weight is shown in gold on an empty hook ("put the 7 on the gold 7.").
 
-The highlight disappears when you next move a weight. A used hint is remembered (even after a reload), shown on the win card as "1 hint used", and in Levels it caps that solve at ★★.
+The hint stays while any of its gold numbers are still waiting, and goes away once they're hung (or a different weight is put there). A used hint is remembered (even after a reload), shown on the win card as "1 hint used", and in Levels it caps that solve at ★★.
 
 ## Levels
 

@@ -12,6 +12,12 @@
 //      look up which hook is under that copy.
 //   3. Let go: we report (weight, where it came from, hook under it or null).
 //
+// LIVE PREVIEW: while the weight is over a hook, the game shows the mobile
+// as if it were hanging there, so the bars swing. That swing can move the
+// hook a little away from the finger, so a hook stays "the target" until the
+// finger moves clearly away from where it found it (STICKY_PX). Otherwise
+// the preview could flicker on and off.
+//
 // After a drag the browser also fires a "click" on the weight we started
 // from. `shouldIgnoreClick()` tells the tap code to ignore that one click.
 //
@@ -29,6 +35,8 @@ import type { DragSource } from '../game/moves.ts'
 const DRAG_THRESHOLD = 8
 /** How far (px) above a finger the dragged weight is shown. A mouse needs no lift. */
 const FINGER_LIFT = 44
+/** How far (px) the pointer can move away from a hook it found and still count as over it. */
+const STICKY_PX = 30
 
 export type DragState = {
   weight: number
@@ -76,6 +84,8 @@ export function useDrag(onDrop: OnDrop, enabled: boolean) {
     const lift = event.pointerType === 'mouse' ? 0 : FINGER_LIFT
     let dragging = false
     let latest: DragState | null = null
+    // The hook the pointer last found, and where the pointer was at that moment
+    let found: { hookId: string; x: number; y: number } | null = null
 
     function onMove(e: PointerEvent) {
       if (e.pointerId !== pointerId) return
@@ -83,7 +93,12 @@ export function useDrag(onDrop: OnDrop, enabled: boolean) {
       dragging = true
       const x = e.clientX
       const y = e.clientY - lift
-      latest = { weight, from, x, y, overHookId: hookAt(x, y) }
+      const under = hookAt(x, y)
+      if (under && under !== found?.hookId) found = { hookId: under, x, y }
+      // Not over any hook right now? Keep the last one if we're still close to it.
+      if (!under && found && Math.hypot(x - found.x, y - found.y) > STICKY_PX) found = null
+      const overHookId = under ?? found?.hookId ?? null
+      latest = { weight, from, x, y, overHookId }
       setDrag(latest)
     }
 

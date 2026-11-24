@@ -14,6 +14,17 @@
   margin-top: var(--space-1);
 }
 
+/* "New here? How to play" (only until the tutorial has been seen) */
+.home-new {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  margin-top: calc(-1 * var(--space-2));
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
 /* ---------- Today's puzzle: the big card ---------- */
 
 .home-today {

@@ -163,6 +163,13 @@
   stroke-width: 1.5;
 }
 
+/* Live preview: the dragged weight shown on the hook under it, see-through
+   (it's only "hanging" there until you let go). No landing bounce. */
+.mobile-hook-group.is-preview .mobile-weight {
+  opacity: 0.55;
+  animation: none;
+}
+
 /* While the player holds a weight, empty hooks light up and gently pulse
    to say "put it here". */
 .mobile.is-holding .mobile-empty {
@@ -331,6 +338,13 @@
   animation: hint-pulse 1.3s ease-in-out infinite;
 }
 
+/* A hinted empty circle: solid gold ring, so the gold number stands out */
+.mobile-hook-group.is-hinted .mobile-empty {
+  stroke: #ffd46b;
+  stroke-dasharray: none;
+  stroke-width: 2;
+}
+
 .mobile-hook-group.is-hinted .mobile-tap-area {
   fill: rgb(255 214 120 / 0.14);
   stroke: rgb(255 220 140 / 0.9);
@@ -349,8 +363,11 @@
 }
 
 .mobile-hint-ghost {
-  fill: rgb(255 230 170 / 0.75);
-  font-size: 14px;
+  fill: #ffe39a;
+  stroke: rgb(40 25 5 / 0.9);
+  stroke-width: 3px;
+  paint-order: stroke;
+  font-size: 17px;
   font-weight: 800;
   text-anchor: middle;
   dominant-baseline: central;

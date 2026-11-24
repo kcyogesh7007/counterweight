@@ -8,7 +8,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { countEvent } from '../analytics.ts'
-import { findHint, hintMessage, MAX_HINTS, type Hint } from '../game/hints.ts'
+import { findHint, hintMessage, isHintStillUseful, MAX_HINTS, type Hint } from '../game/hints.ts'
 import { weightRadius } from '../game/layout.ts'
 import { formatTime, type SavedProgress } from '../game/moves.ts'
 import type { Puzzle } from '../game/types.ts'
@@ -72,11 +72,12 @@ export function GameScreen(props: GameScreenProps) {
   }, [isSolved, elapsed, rehangs, hintsUsed])
 
   // ---------- Hints ----------
-  // The hint being shown right now (see game/hints.ts), or null. It's cleared
-  // as soon as the player moves a weight (the placement changes).
+  // The hint being shown right now (see game/hints.ts), or null. When the
+  // player moves a weight, it stays only while it still has gold numbers
+  // waiting (so a "these two go here" hint lasts until both are hung).
   const [shownHint, setShownHint] = useState<Hint | null>(null)
   useEffect(() => {
-    setShownHint(null)
+    setShownHint((hint) => (hint && isHintStillUseful(hint, game.placement) ? hint : null))
   }, [game.placement])
   const hintsLeft = MAX_HINTS - hintsUsed
   function showHint() {
@@ -115,6 +116,11 @@ export function GameScreen(props: GameScreenProps) {
   // the bars react as if it's been lifted, like a real mobile.
   const shownPlacement = { ...game.placement }
   if (drag && drag.from !== 'tray') delete shownPlacement[drag.from]
+  // LIVE PREVIEW: while the weight is over a hook, show it hanging there, so
+  // the bars swing before you let go. (A weight already on that hook would go
+  // back to the tray when you drop, so the preview leaves it out.) Nothing is
+  // really moved, and nothing counts, until you let go.
+  if (drag?.overHookId) shownPlacement[drag.overHookId] = drag.weight
 
   // Taps are ignored if they're really the end of a drag.
   const onHookTap = (hookId: string) => !shouldIgnoreClick() && game.onHookTap(hookId)

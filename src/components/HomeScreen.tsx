@@ -25,9 +25,11 @@ type Props = {
   onOpenLevels: () => void
   onOpenPractice: () => void
   onOpenArchive: () => void
+  /** Shown as a "New here? How to play" link (only until the tutorial has been seen). */
+  onHowToPlay?: () => void
 }
 
-export function HomeScreen({ day, onPlayDaily, onOpenLevels, onOpenPractice, onOpenArchive }: Props) {
+export function HomeScreen({ day, onPlayDaily, onOpenLevels, onOpenPractice, onOpenArchive, onHowToPlay }: Props) {
   const levelProgress = levelTotals(loadLevelStars())
   const practiceSolved = Object.values(loadPracticeCounts()).reduce((sum, n) => sum + n, 0)
   const results = loadAllResults()
@@ -54,6 +56,14 @@ export function HomeScreen({ day, onPlayDaily, onOpenLevels, onOpenPractice, onO
   return (
     <section className="home" aria-label="Home">
       <p className="home-tagline">Hang every weight so every bar balances.</p>
+      {onHowToPlay && (
+        <p className="home-new">
+          New here?{' '}
+          <button type="button" className="link-button" onClick={onHowToPlay}>
+            How to play
+          </button>
+        </p>
+      )}
 
       {/* Today's puzzle: the big card */}
       <button type="button" className="home-today" onClick={onPlayDaily}>
