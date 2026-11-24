@@ -6,6 +6,7 @@
 //   tutorial  "How to play", 2 small puzzles
 //   levels    the level map (60 levels, stars)
 //   level     playing one level
+//   practice  choose Easy / Medium / Hard, then endless puzzles made on the spot
 //
 // Flow:
 //   first visit:  How to play 1 -> How to play 2 -> today's puzzle
@@ -23,8 +24,11 @@ import { HomeScreen } from './components/HomeScreen.tsx'
 import { BackIcon, Logo } from './components/Icons.tsx'
 import { LevelPuzzle } from './components/LevelPuzzle.tsx'
 import { LevelsScreen } from './components/LevelsScreen.tsx'
+import { PracticePuzzle } from './components/PracticePuzzle.tsx'
+import { PracticeScreen } from './components/PracticeScreen.tsx'
 import { dayNumber } from './game/daily.ts'
 import { isUnlocked } from './game/levels.ts'
+import { newSeed, PRACTICE_DIFFICULTIES, type PracticeDifficulty } from './game/practice.ts'
 import { LEVEL_PUZZLES, TUTORIAL_PUZZLES } from './game/puzzles.ts'
 import { useScreens } from './hooks/useScreens.ts'
 import { hasSeenTutorial, loadLevelStars, markTutorialSeen } from './storage.ts'
@@ -36,6 +40,8 @@ type Screen =
   | { kind: 'tutorial'; step: number }
   | { kind: 'levels' } // the level map
   | { kind: 'level'; level: number } // playing one level
+  | { kind: 'practice' } // choose a Practice difficulty
+  | { kind: 'practicePuzzle'; difficulty: PracticeDifficulty; seed: number } // one Practice puzzle
 
 const HOME: Screen = { kind: 'home' }
 
@@ -85,10 +91,29 @@ function App() {
       </header>
 
       {screen.kind === 'home' && (
-        <HomeScreen day={day} onPlayDaily={() => go({ kind: 'daily' })} onOpenLevels={() => go({ kind: 'levels' })} />
+        <HomeScreen
+          day={day}
+          onPlayDaily={() => go({ kind: 'daily' })}
+          onOpenLevels={() => go({ kind: 'levels' })}
+          onOpenPractice={() => go({ kind: 'practice' })}
+        />
       )}
 
       {screen.kind === 'levels' && <LevelsScreen onPlay={(level) => go({ kind: 'level', level })} />}
+
+      {screen.kind === 'practice' && (
+        <PracticeScreen onPlay={(difficulty) => go({ kind: 'practicePuzzle', difficulty, seed: newSeed() })} />
+      )}
+
+      {screen.kind === 'practicePuzzle' && (
+        <PracticePuzzle
+          difficulty={screen.difficulty}
+          seed={screen.seed}
+          // A new puzzle replaces this one, so Back still leads to the picker.
+          onNext={() => replace({ kind: 'practicePuzzle', difficulty: screen.difficulty, seed: newSeed() })}
+          onChangeDifficulty={back}
+        />
+      )}
 
       {screen.kind === 'level' && (
         <LevelPuzzle
@@ -121,7 +146,10 @@ function isKnownScreen(screen: Screen): boolean {
     case 'home':
     case 'daily':
     case 'levels':
+    case 'practice':
       return true
+    case 'practicePuzzle':
+      return PRACTICE_DIFFICULTIES.includes(screen.difficulty) && Number.isInteger(screen.seed)
     case 'tutorial':
       return TUTORIAL_PUZZLES[screen.step] !== undefined
     case 'level':

@@ -12,7 +12,7 @@
 // The SAME seed always gives the SAME puzzles, so results can be repeated.
 
 import { computeLayout, minHookSpacingOnPhone } from '../src/game/layout.ts'
-import { barLevels, countFootholds, countSearchSteps, DEFAULT_MAX_NOTCHES, makeRandom, tryMakePuzzle } from './lib/generator.ts'
+import { barLevels, countFootholds, countSearchSteps, DEFAULT_MAX_NOTCHES, makeRandom, tryMakePuzzle } from '../src/game/generator.ts'
 
 const weightCount = Number(process.argv[2] ?? 7)
 const wanted = Number(process.argv[3] ?? 5)

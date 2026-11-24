@@ -13,7 +13,7 @@ import { levelTotals } from '../game/levels.ts'
 import { formatTime } from '../game/moves.ts'
 import { LEVEL_PUZZLES } from '../game/puzzles.ts'
 import { computeStreaks } from '../game/streaks.ts'
-import { loadAllResults, loadInProgress, loadLevelStars } from '../storage.ts'
+import { loadAllResults, loadInProgress, loadLevelStars, loadPracticeCounts } from '../storage.ts'
 import { Difficulty } from './Difficulty.tsx'
 import { ArchiveIcon, ChevronIcon, FlameIcon, LevelsIcon, Logo, PracticeIcon } from './Icons.tsx'
 import './HomeScreen.css'
@@ -22,10 +22,12 @@ type Props = {
   day: number
   onPlayDaily: () => void
   onOpenLevels: () => void
+  onOpenPractice: () => void
 }
 
-export function HomeScreen({ day, onPlayDaily, onOpenLevels }: Props) {
+export function HomeScreen({ day, onPlayDaily, onOpenLevels, onOpenPractice }: Props) {
   const levelProgress = levelTotals(loadLevelStars())
+  const practiceSolved = Object.values(loadPracticeCounts()).reduce((sum, n) => sum + n, 0)
   const results = loadAllResults()
   const todayResult = results[day]
   const inProgress = todayResult ? null : loadInProgress(day)
@@ -69,7 +71,7 @@ export function HomeScreen({ day, onPlayDaily, onOpenLevels }: Props) {
         </span>
       </button>
 
-      {/* Other ways to play (Practice and Past puzzles come in the next steps) */}
+      {/* Other ways to play (Past puzzles comes in the next step) */}
       <ul className="home-list">
         <ModeCard
           icon={<LevelsIcon />}
@@ -81,7 +83,12 @@ export function HomeScreen({ day, onPlayDaily, onOpenLevels }: Props) {
           }
           onOpen={onOpenLevels}
         />
-        <ModeCard icon={<PracticeIcon />} title="Practice" text="Endless puzzles: easy, medium or hard." />
+        <ModeCard
+          icon={<PracticeIcon />}
+          title="Practice"
+          text={practiceSolved === 0 ? 'Endless puzzles: easy, medium or hard.' : `Endless puzzles · ${practiceSolved} solved`}
+          onOpen={onOpenPractice}
+        />
         <ModeCard icon={<ArchiveIcon />} title="Past puzzles" text="Play any daily puzzle you missed." />
       </ul>
     </section>

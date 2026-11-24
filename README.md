@@ -63,6 +63,10 @@ src/
 │  ├─ balance.ts            total weight, torque, balanced?, solved?, tilt angle
 │  ├─ moves.ts              what each tap/drag does, re-hangs, the timer
 │  ├─ daily.ts              today's puzzle number, countdown to midnight
+│  ├─ generator.ts          makes puzzles (used by Practice and the build scripts)
+│  ├─ levels.ts             stars and unlocking for Levels
+│  ├─ practice.ts           Practice puzzles by difficulty and seed
+│  ├─ streaks.ts            current and best streak
 │  ├─ layout.ts             sizes for drawing; checks puzzles fit a 360px phone
 │  └─ puzzles.ts            loads the JSON files
 ├─ hooks/
@@ -78,7 +82,6 @@ src/
 ├─ styles/global.css        colours, spacing, dark mode (all as named tokens)
 └─ App.tsx                  picks the screen: tutorial step or today's puzzle
 scripts/
-├─ lib/generator.ts         puzzle-making building blocks and difficulty scores
 ├─ build-daily.ts           builds src/data/daily.json
 ├─ generate-puzzles.ts      prints candidates
 └─ verify-puzzles.ts        the puzzle checker
@@ -97,6 +100,18 @@ scripts/
 | 41–60 | 7 | Fiendish |
 
 Within each group, puzzles go from easier to harder. No level repeats a daily or tutorial puzzle. Solving a level opens the next one. Stars: **0 re-hangs ★★★, 1–2 ★★, 3 or more ★**. Your best stars are kept, and you can replay a level to improve them. Levels never affect the daily streak.
+
+## Practice
+
+Endless puzzles made on the phone, on the spot, by the same generator the build scripts use (`src/game/generator.ts`):
+
+| Difficulty | Puzzles |
+| --- | --- |
+| Easy | 4–5 weights |
+| Medium | 6 weights |
+| Hard | 7 weights, at most one easy starting point |
+
+Each puzzle comes from a random **seed** number: the same seed always makes the same puzzle, in every browser, so a reload keeps your puzzle. Every practice puzzle has exactly one solution and fits a 360px phone (checked by `src/game/practice.test.ts`). The game counts how many you've solved at each difficulty. Practice never affects the daily streak.
 
 ## The daily puzzles
 

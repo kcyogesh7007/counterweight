@@ -20,6 +20,34 @@ const RESULTS_KEY = 'counterweight:results'
 const IN_PROGRESS_KEY = 'counterweight:inProgress'
 const LEVELS_KEY = 'counterweight:levels'
 
+const PRACTICE_KEY = 'counterweight:practice'
+
+/** How many Practice puzzles were solved at each difficulty, e.g. {"easy":3,"hard":1}. */
+export function loadPracticeCounts(): Record<string, number> {
+  try {
+    const parsed: unknown = JSON.parse(localStorage.getItem(PRACTICE_KEY) ?? '{}')
+    if (typeof parsed !== 'object' || parsed === null) return {}
+    const counts: Record<string, number> = {}
+    for (const [difficulty, n] of Object.entries(parsed)) {
+      if (typeof n === 'number' && Number.isInteger(n) && n >= 0) counts[difficulty] = n
+    }
+    return counts
+  } catch {
+    return {}
+  }
+}
+
+/** Add one solved Practice puzzle at this difficulty. */
+export function addPracticeSolve(difficulty: string): void {
+  try {
+    const counts = loadPracticeCounts()
+    counts[difficulty] = (counts[difficulty] ?? 0) + 1
+    localStorage.setItem(PRACTICE_KEY, JSON.stringify(counts))
+  } catch {
+    // Storage blocked: nothing to do.
+  }
+}
+
 /** Best stars per level (level number -> 1, 2 or 3). Damaged entries are skipped. */
 export function loadLevelStars(): Record<number, number> {
   try {

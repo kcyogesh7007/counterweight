@@ -1,5 +1,6 @@
-// generator.ts — the building blocks for making puzzles. Used by
-// generate-puzzles.ts and build-daily.ts. A developer tool, NOT part of the game.
+// generator.ts — the building blocks for making puzzles.
+// Used by the game itself (Practice mode makes new puzzles on the phone) and
+// by the developer scripts (build-daily, build-levels, generate-puzzles).
 //
 // Recipe (from the design PDF):
 //   1. Pick a random tree shape with N hooks (at most 4 levels of bars).
@@ -13,8 +14,8 @@
 // 7 notches, since 7 shares no factor with x.) So instead we SEARCH, in
 // random order, for an arrangement whose arms all stay within the limit.
 
-import { collectBars, collectHooks, totalWeight } from '../../src/game/balance.ts'
-import type { Bar, MobileNode, Placement, Puzzle } from '../../src/game/types.ts'
+import { collectBars, collectHooks, totalWeight } from './balance.ts'
+import type { Bar, MobileNode, Placement, Puzzle } from './types.ts'
 
 export const DEFAULT_MAX_NOTCHES = 6
 const MAX_BAR_LEVELS = 4
@@ -66,7 +67,35 @@ function setNotches(node: MobileNode, placement: Placement): void {
  * within maxNotches. Gives up on a branch as soon as a bar whose hooks are
  * all filled breaks the limit. Returns null if no arrangement works.
  */
-function findShortArmPlacement(root: Bar, weights: number[], random: () => number, maxNotches: number): Placement | null {
+/**
+ * Two ways to put the weights in a random order:
+ *   'portable' – a proper Fisher–Yates shuffle. Gives exactly the same order
+ *                in every browser and in Node, for the same seed. Used by the
+ *                game (Practice), so a seed always rebuilds the same puzzle.
+ *   'legacy'   – the quick "sort with a random comparison" trick. Its result
+ *                depends on the JavaScript engine's sort method. It's kept ONLY
+ *                so the build scripts still reproduce the published daily and
+ *                level lists exactly (changing it would change those puzzles).
+ */
+export type ShuffleMethod = 'portable' | 'legacy'
+
+function shuffled(items: number[], random: () => number, method: ShuffleMethod): number[] {
+  if (method === 'legacy') return [...items].sort(() => random() - 0.5)
+  const result = [...items]
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1)) // pick one of the first i+1 items…
+    ;[result[i], result[j]] = [result[j], result[i]] // …and swap it into place i
+  }
+  return result
+}
+
+function findShortArmPlacement(
+  root: Bar,
+  weights: number[],
+  random: () => number,
+  maxNotches: number,
+  method: ShuffleMethod,
+): Placement | null {
   const hooks = collectHooks(root)
   const bars = collectBars(root)
   const armsTooLong = (l: number, r: number) => l / gcd(l, r) > maxNotches || r / gcd(l, r) > maxNotches
@@ -77,7 +106,7 @@ function findShortArmPlacement(root: Bar, weights: number[], random: () => numbe
 
   function tryHook(i: number): boolean {
     if (i === hooks.length) return true
-    for (const w of [...weights].sort(() => random() - 0.5)) {
+    for (const w of shuffled(weights, random, method)) {
       if (used.has(w)) continue
       placement[hooks[i].id] = w
       used.add(w)
@@ -114,11 +143,16 @@ function renameNodes(root: Bar, solution: Placement): Placement {
 }
 
 /** Makes ONE random puzzle, or null if this attempt's shape didn't work out. */
-export function tryMakePuzzle(weightCount: number, random: () => number, maxNotches = DEFAULT_MAX_NOTCHES): Puzzle | null {
+export function tryMakePuzzle(
+  weightCount: number,
+  random: () => number,
+  maxNotches = DEFAULT_MAX_NOTCHES,
+  method: ShuffleMethod = 'legacy',
+): Puzzle | null {
   const weights = Array.from({ length: weightCount }, (_, i) => i + 1)
   const root = randomShape(weightCount, MAX_BAR_LEVELS, random, { bar: 0, hook: 0 })
   if (!root || root.kind !== 'bar') return null
-  const placement = findShortArmPlacement(root, weights, random, maxNotches)
+  const placement = findShortArmPlacement(root, weights, random, maxNotches, method)
   if (!placement) return null // this shape can't be done with short enough arms
   setNotches(root, placement)
   const solution = renameNodes(root, placement)

@@ -20,7 +20,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { MIN_HOOK_SPACING_PX, minHookSpacingOnPhone } from '../src/game/layout.ts'
 import type { Puzzle } from '../src/game/types.ts'
-import { countFootholds, countSearchSteps, makeRandom, puzzleFingerprint, tryMakePuzzle } from './lib/generator.ts'
+import { countFootholds, countSearchSteps, makeRandom, puzzleFingerprint, tryMakePuzzle } from '../src/game/generator.ts'
 
 const DAYS = 365
 const POOL_ATTEMPTS = 9000 // how many random tries to make the pool (more = better variety)

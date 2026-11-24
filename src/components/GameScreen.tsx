@@ -6,7 +6,7 @@
 // puzzle automatically starts with empty hooks, 0:00 and 0 re-hangs (or,
 // if it was solved before, straight on the solved view).
 
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { weightRadius } from '../game/layout.ts'
 import { formatTime, type SavedProgress } from '../game/moves.ts'
 import type { Puzzle } from '../game/types.ts'
@@ -49,12 +49,21 @@ export function GameScreen(props: GameScreenProps) {
   const { drag, startDrag, shouldIgnoreClick } = useDrag(game.onDrop, !game.isSolved)
   const hungCount = Object.keys(game.placement).length
 
-  // When the puzzle becomes solved, tell App the result (so it can be saved).
-  // useEffect runs after drawing, and again only when something in [ ] changes.
+  // When the puzzle becomes solved, tell App the result (so it can be saved)
+  // EXACTLY ONCE. A ref remembers that we've already told it, and holds the
+  // latest onSolved function without making the effect run again.
   const { isSolved, elapsed, rehangs } = game
+  const reported = useRef(false)
+  const onSolvedRef = useRef(onSolved)
   useEffect(() => {
-    if (isSolved) onSolved?.({ elapsed, rehangs })
-  }, [isSolved, elapsed, rehangs, onSolved])
+    onSolvedRef.current = onSolved
+  })
+  useEffect(() => {
+    if (isSolved && !reported.current) {
+      reported.current = true
+      onSolvedRef.current?.({ elapsed, rehangs })
+    }
+  }, [isSolved, elapsed, rehangs])
 
   // While a weight is being dragged OFF a hook, draw that hook as empty
   // (the weight is "in the player's hand", following the pointer), and let

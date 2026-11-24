@@ -29,7 +29,7 @@ import { readFileSync } from 'node:fs'
 import { collectBars, collectHooks, isBarBalanced } from '../src/game/balance.ts'
 import { MIN_HOOK_SPACING_PX, minHookSpacingOnPhone } from '../src/game/layout.ts'
 import type { Bar, Placement, Puzzle } from '../src/game/types.ts'
-import { puzzleFingerprint } from './lib/generator.ts'
+import { puzzleFingerprint } from '../src/game/generator.ts'
 
 // By default it checks our real puzzle files. You can also check other files:
 //   npm run verify -- path/to/some-puzzles.json
