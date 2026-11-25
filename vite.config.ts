@@ -12,14 +12,15 @@ export default defineConfig(({ mode }) => ({
     //    to the home screen and open it full-screen like a normal app;
     //  - a service worker: a small helper that keeps a copy of the game's
     //    files, so it also works with no internet. When a new version is
-    //    published, the helper fetches it in the background and the player
-    //    gets it the next time they open the game.
+    //    published, it downloads it in the background and the game shows
+    //    "A new version is ready" (see components/UpdatePrompt.tsx).
     // It only runs in the built game (npm run build), not while developing.
-    // The Android app leaves it out: the app already carries every file inside it.
-    mode !== 'android' &&
-      VitePWA({
-      registerType: 'autoUpdate',
-      injectRegister: 'script',
+    // The Android app switches it off (disable): the app already carries every
+    // file inside it, and app updates come from the Play Store.
+    VitePWA({
+      disable: mode === 'android',
+      registerType: 'prompt',
+      injectRegister: false, // UpdatePrompt.tsx registers it
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'Counterweight: Balance Puzzle',

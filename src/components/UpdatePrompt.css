@@ -1,0 +1,53 @@
+/* UpdatePrompt.css — the "new version is ready" bar at the bottom of the screen. */
+
+.update-prompt {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+  z-index: 50;
+  width: min(420px, calc(100% - 2 * var(--space-4)));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+  border: 1px solid rgb(233 200 121 / 0.45);
+  border-radius: var(--radius-md);
+  background: rgb(24 19 13 / 0.96);
+  box-shadow:
+    0 10px 30px rgb(0 0 0 / 0.6),
+    0 0 18px rgb(233 200 121 / 0.15);
+  animation: update-in 420ms var(--ease-settle);
+}
+
+@keyframes update-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%);
+  }
+}
+
+.update-text {
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  line-height: 1.35;
+}
+
+.update-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* A smaller gold button than the big "Play" ones */
+.update-button {
+  min-height: 40px;
+  padding: 0 var(--space-4);
+  font-size: var(--font-size-sm);
+}
