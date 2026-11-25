@@ -14,6 +14,10 @@
 // While the code is empty, NOTHING is loaded or sent.
 //
 // It never counts while you're testing on your own computer (localhost).
+// In the Android app it does count, under the page name "/android-app", so
+// app players can be told apart from website players.
+
+import { Capacitor } from '@capacitor/core'
 
 /** Your GoatCounter code, e.g. 'counterweight' (empty = counting switched off). */
 export const GOATCOUNTER_CODE = 'counterweight-puzzle'
@@ -33,6 +37,8 @@ type GoatCounter = { count: (options: { path: string; title?: string; event?: bo
 /** Is counting switched on, and are we on the real website (not localhost)? */
 function isEnabled(): boolean {
   if (!GOATCOUNTER_CODE) return false
+  // The Android app runs the game from "localhost" inside the phone: that's real players
+  if (Capacitor.isNativePlatform()) return true
   const host = window.location.hostname
   return host !== 'localhost' && host !== '127.0.0.1' && host !== ''
 }
@@ -43,6 +49,11 @@ function isEnabled(): boolean {
  */
 export function startAnalytics(): void {
   if (!isEnabled() || document.querySelector('script[data-goatcounter]')) return
+  if (Capacitor.isNativePlatform()) {
+    // Settings GoatCounter reads before it loads: count even though the
+    // address is "localhost", and name the visit "/android-app".
+    ;(window as unknown as { goatcounter: object }).goatcounter = { allow_local: true, path: () => '/android-app' }
+  }
   const script = document.createElement('script')
   script.async = true
   script.src = 'https://gc.zgo.at/count.js'

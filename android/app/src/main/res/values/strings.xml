@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Counterweight</string>
+    <string name="title_activity_main">Counterweight</string>
+    <string name="package_name">io.github.kcyogesh7007.counterweight</string>
+    <string name="custom_url_scheme">io.github.kcyogesh7007.counterweight</string>
+</resources>

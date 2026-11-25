@@ -3,7 +3,8 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
-export default defineConfig({
+// `mode` is 'android' for the Android app build (npm run build:android).
+export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     // Makes the game a "PWA" (installable web app):
@@ -14,7 +15,9 @@ export default defineConfig({
     //    published, the helper fetches it in the background and the player
     //    gets it the next time they open the game.
     // It only runs in the built game (npm run build), not while developing.
-    VitePWA({
+    // The Android app leaves it out: the app already carries every file inside it.
+    mode !== 'android' &&
+      VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'script',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
@@ -60,4 +63,4 @@ export default defineConfig({
       },
     },
   },
-})
+}))
