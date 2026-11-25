@@ -230,7 +230,10 @@ body::after {
   min-height: 100vh;
   min-height: 100dvh;
   padding: var(--space-3) var(--space-4) var(--space-4);
-  /* Keep clear of the notch / home bar on modern phones */
+  /* Keep clear of the status bar at the top (the Android app and installed
+     web app draw behind it) and the notch / home bar at the bottom.
+     On a normal web page these insets are 0, so nothing changes there. */
+  padding-top: calc(var(--space-3) + env(safe-area-inset-top));
   padding-bottom: max(var(--space-4), env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;

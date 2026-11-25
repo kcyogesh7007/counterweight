@@ -20,6 +20,13 @@ const config: CapacitorConfig = {
     // The game's dark background while the app starts
     backgroundColor: '#0b0907',
   },
+  plugins: {
+    SystemBars: {
+      // The game is dark, so the clock, battery and other status-bar icons
+      // should be LIGHT ('DARK' means "for a dark background").
+      style: 'DARK',
+    },
+  },
 }
 
 export default config
