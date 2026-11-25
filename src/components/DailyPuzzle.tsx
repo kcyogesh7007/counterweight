@@ -15,7 +15,17 @@ import { clearInProgress, loadInProgress, loadResult, saveInProgress, saveResult
 import { Difficulty } from './Difficulty.tsx'
 import { GameScreen } from './GameScreen.tsx'
 import { NextPuzzleCountdown } from './NextPuzzleCountdown.tsx'
+import { ShareButton } from './ShareButton.tsx'
 import { StreakStats } from './StreakStats.tsx'
+import { dayNumber } from '../game/daily.ts'
+import { shareText } from '../game/share.ts'
+import { computeStreaks } from '../game/streaks.ts'
+import { onTimeSolvedDays } from '../storage.ts'
+
+/** The current streak after solving `day` (same count as the win card shows). */
+function currentStreak(day: number): number {
+  return computeStreaks([...onTimeSolvedDays(), day], dayNumber(new Date())).current
+}
 
 type Props = {
   day: number
@@ -53,10 +63,13 @@ export function DailyPuzzle({ day, mode, onPlayNextDay, onDone }: Props) {
       onWinButton={onDone}
       winExtra={
         isToday ? (
-          <>
-            <StreakStats day={day} />
-            <NextPuzzleCountdown nextDay={day + 1} onPlayNext={onPlayNextDay ?? onDone} />
-          </>
+          (result) => (
+            <>
+              <StreakStats day={day} />
+              <ShareButton text={shareText({ day, elapsed: result.elapsed, hints: result.hints ?? 0, streak: currentStreak(day) })} />
+              <NextPuzzleCountdown nextDay={day + 1} onPlayNext={onPlayNextDay ?? onDone} />
+            </>
+          )
         ) : (
           <p className="win-subtitle">
             {earlier && !earlier.late

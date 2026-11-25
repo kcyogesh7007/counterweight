@@ -30,6 +30,7 @@ export type GameEvent =
   | 'level-solved'
   | 'practice-solved'
   | 'hint-used'
+  | 'shared'
 
 /** The shape of the `goatcounter` object GoatCounter's script adds to the page. */
 type GoatCounter = { count: (options: { path: string; title?: string; event?: boolean }) => void }
