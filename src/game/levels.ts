@@ -2,8 +2,10 @@
 //
 //   Stars (for one solve):   0 re-hangs -> ★★★,  1–2 -> ★★☆,  3 or more -> ★☆☆
 //   You keep your BEST stars for each level (replay to improve).
-//   Level 1 is always open. Every other level opens once the one before it
-//   has been solved (with any number of stars).
+//   Levels come in sections by size (3 weights, 4 weights, … 7 weights).
+//   The FIRST level of every section is always open, so you can start with
+//   the hard ones if you like. Inside a section, each level opens once the
+//   one before it has been solved (with any number of stars).
 
 /** Stars for one solve, from the number of re-hangs. */
 export function starsFor(rehangs: number): 1 | 2 | 3 {
@@ -15,9 +17,16 @@ export function starsFor(rehangs: number): 1 | 2 | 3 {
 /** Best stars so far: level number -> 1, 2 or 3. Missing = not solved yet. */
 export type LevelStars = Record<number, number>
 
-/** Can this level be played yet? */
-export function isUnlocked(level: number, stars: LevelStars): boolean {
-  return level === 1 || stars[level - 1] !== undefined
+/**
+ * Can this level be played yet? `levels` is the list of all levels (to see
+ * where each section starts: a section starts where the number of weights changes).
+ */
+export function isUnlocked(level: number, stars: LevelStars, levels: { weights: number[] }[]): boolean {
+  const current = levels[level - 1]
+  if (!current) return false // no such level
+  const before = levels[level - 2]
+  if (!before || before.weights.length !== current.weights.length) return true // first of its section
+  return stars[level - 1] !== undefined
 }
 
 /** The level to suggest next: the first one that's open but not solved (or the last level). */

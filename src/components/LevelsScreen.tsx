@@ -69,7 +69,7 @@ export function LevelsScreen({ onPlay }: { onPlay: (level: number) => void }) {
           </h3>
           <ol className="levels-grid">
             {levels.map((n) => {
-              const unlocked = isUnlocked(n, stars)
+              const unlocked = isUnlocked(n, stars, LEVEL_PUZZLES)
               const best = stars[n]
               const isNext = n === next && unlocked
               const label = !unlocked ? `Level ${n}, locked` : best ? `Level ${n}, ${best} of 3 stars` : `Level ${n}, not solved yet`

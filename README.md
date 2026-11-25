@@ -144,7 +144,7 @@ The hint stays while any of its gold numbers are still waiting, and goes away on
 | 26–40 | 6 | Tricky |
 | 41–60 | 7 | Fiendish |
 
-Within each group, puzzles go from easier to harder. No level repeats a daily or tutorial puzzle. Solving a level opens the next one. Stars: **0 re-hangs ★★★, 1–2 ★★, 3 or more ★**. Your best stars are kept, and you can replay a level to improve them. Levels never affect the daily streak.
+Within each group, puzzles go from easier to harder. No level repeats a daily or tutorial puzzle. The **first level of every group is always open** (1, 6, 13, 26, 41), so players can start with the hard ones; inside a group, solving a level opens the next one. Stars: **0 re-hangs ★★★, 1–2 ★★, 3 or more ★**. Your best stars are kept, and you can replay a level to improve them. Levels never affect the daily streak.
 
 ## Practice
 

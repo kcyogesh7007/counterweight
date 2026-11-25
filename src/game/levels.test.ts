@@ -16,11 +16,29 @@ describe('starsFor', () => {
 })
 
 describe('unlocking', () => {
-  it('level 1 is always open; others open after the one before is solved', () => {
-    expect(isUnlocked(1, {})).toBe(true)
-    expect(isUnlocked(2, {})).toBe(false)
-    expect(isUnlocked(2, { 1: 1 })).toBe(true) // even 1 star is enough
-    expect(isUnlocked(3, { 1: 3 })).toBe(false)
+  // The real list has sections starting at levels 1, 6, 13, 26 and 41
+  const L = LEVEL_PUZZLES
+
+  it('the first level of every section is always open', () => {
+    for (const first of [1, 6, 13, 26, 41]) expect(isUnlocked(first, {}, L)).toBe(true)
+  })
+
+  it('inside a section, a level opens after the one before is solved', () => {
+    expect(isUnlocked(2, {}, L)).toBe(false)
+    expect(isUnlocked(2, { 1: 1 }, L)).toBe(true) // even 1 star is enough
+    expect(isUnlocked(3, { 1: 3 }, L)).toBe(false)
+    expect(isUnlocked(42, {}, L)).toBe(false) // Fiendish 2 needs Fiendish 1
+    expect(isUnlocked(42, { 41: 2 }, L)).toBe(true)
+  })
+
+  it('every other level starts locked (only the 5 section starts are open)', () => {
+    const open = L.map((_, i) => i + 1).filter((n) => isUnlocked(n, {}, L))
+    expect(open).toEqual([1, 6, 13, 26, 41])
+  })
+
+  it('a level number that does not exist is never open', () => {
+    expect(isUnlocked(61, {}, L)).toBe(false)
+    expect(isUnlocked(0, {}, L)).toBe(false)
   })
 
   it('suggests the first unsolved level, or the last one when all are done', () => {

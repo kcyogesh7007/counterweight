@@ -206,7 +206,7 @@ function isKnownScreen(screen: Screen): boolean {
     case 'tutorial':
       return TUTORIAL_PUZZLES[screen.step] !== undefined
     case 'level':
-      return LEVEL_PUZZLES[screen.level - 1] !== undefined && isUnlocked(screen.level, loadLevelStars())
+      return LEVEL_PUZZLES[screen.level - 1] !== undefined && isUnlocked(screen.level, loadLevelStars(), LEVEL_PUZZLES)
     default:
       return false
   }
