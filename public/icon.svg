@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Counterweight app icon: a gold mobile with two glossy weights on the
+       dark background. Everything sits inside the middle 80% ("safe zone"),
+       so phones that cut icons into circles don't clip it. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="75%">
+      <stop offset="0" stop-color="#3a2c1a"/>
+      <stop offset="0.55" stop-color="#1a140e"/>
+      <stop offset="1" stop-color="#0b0907"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff0b8"/>
+      <stop offset="0.45" stop-color="#e2b24f"/>
+      <stop offset="1" stop-color="#9a6a1c"/>
+    </linearGradient>
+    <radialGradient id="shine" cx="35%" cy="28%" r="70%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.55"/>
+      <stop offset="0.45" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0.35"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <!-- string from the top to the pivot -->
+  <line x1="226" y1="96" x2="226" y2="176" stroke="#e9d2a0" stroke-width="7" stroke-linecap="round"/>
+  <!-- the bar: the heavy ball hangs close in (100), the light one far out (200), so it balances -->
+  <rect x="112" y="166" width="314" height="26" rx="13" fill="url(#gold)"/>
+  <!-- strings down to the weights -->
+  <line x1="126" y1="190" x2="126" y2="282" stroke="#e9d2a0" stroke-width="6"/>
+  <line x1="414" y1="190" x2="414" y2="250" stroke="#e9d2a0" stroke-width="6"/>
+  <!-- pivot: emerald, because this mobile is balanced -->
+  <circle cx="226" cy="179" r="20" fill="#17120c"/>
+  <circle cx="226" cy="179" r="15" fill="#5fd3a6"/>
+  <circle cx="221" cy="174" r="5" fill="#e6fff5" opacity="0.8"/>
+  <!-- the weights: a big yellow one and a smaller blue one -->
+  <circle cx="126" cy="342" r="62" fill="#ffb21f"/>
+  <circle cx="126" cy="342" r="62" fill="url(#shine)"/>
+  <circle cx="414" cy="296" r="48" fill="#2fa8f0"/>
+  <circle cx="414" cy="296" r="48" fill="url(#shine)"/>
+  <ellipse cx="106" cy="316" rx="20" ry="11" fill="#ffffff" opacity="0.7"/>
+  <ellipse cx="399" cy="276" rx="15" ry="8" fill="#ffffff" opacity="0.7"/>
+</svg>

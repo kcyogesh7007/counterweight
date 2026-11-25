@@ -98,6 +98,23 @@ three small practice puzzles (`src/data/tutorial.json`). During those, a live
 **balance meter** (`src/components/BalanceMeter.tsx`) shows each bar's sum, and
 the weights pulse until the first tap.
 
+## Installable app (PWA) and offline play
+
+The game is a PWA ("progressive web app"), set up in `vite.config.ts` with
+`vite-plugin-pwa`:
+
+- **Manifest:** the app's name ("Counterweight: Balance Puzzle", shown as
+  "Counterweight" under the icon), icons and colours. Phones can add it to
+  the home screen and open it full-screen like a normal app.
+- **Service worker:** keeps a copy of every file the game needs, so it also
+  works with no internet. After a new version is published, players get it
+  the next time they open the game.
+- **Icons** are in `public/`. `icon.svg` is the source; the PNGs
+  (192, 512, maskable 512, Apple 180, favicon 32) are drawn from it. The
+  mobile in the icon really balances: the heavy ball hangs close in.
+
+This only runs in the built game (`npm run build`), not with `npm run dev`.
+
 ## Sound
 
 Little sound effects (pick, hang, remove, hint, reset, win) are made by the
