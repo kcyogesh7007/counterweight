@@ -127,7 +127,8 @@ export function GameScreen(props: GameScreenProps) {
   const onWeightTap = (weight: number) => !shouldIgnoreClick() && game.onWeightTap(weight)
 
   // A short line telling the player what they can do next.
-  let hint = 'Tap or drag a weight onto a hook.'
+  const spare = puzzle.weights.length - Object.keys(puzzle.solution).length
+  let hint = spare > 0 ? `Fill every hook. ${spare} weights are spare.` : 'Tap or drag a weight onto a hook.'
   if (drag) hint = drag.overHookId ? `Let go to hang the ${drag.weight}.` : 'Drag it over a hook.'
   else if (game.selected !== null) hint = `Now tap a hook to hang the ${game.selected}.`
   else if (hungCount > 0) hint = 'Tap or drag a hung weight to take it down.'

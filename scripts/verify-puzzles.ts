@@ -4,8 +4,9 @@
 //
 // For every puzzle in src/data/*.json it checks:
 //   1. The data is well-formed (ids unique, notches are whole numbers 1–6,
-//      one hook per weight, weights all different).
-//   2. The stored solution uses every weight exactly once.
+//      at least one weight per hook, weights all different).
+//   2. The stored solution fills every hook, using each tray weight at most
+//      once. (The hardest levels have SPARE weights: more weights than hooks.)
 //   3. The stored solution really balances every bar.
 //   4. BRUTE FORCE: it tries every possible way to hang the weights and
 //      counts how many balance everything. A fair puzzle must have exactly 1.
@@ -13,9 +14,9 @@
 //      Why it is always 1 (if checks 1–3 pass): each bar gives one equation,
 //      so N hooks get N − 1 equations. They fix the PROPORTIONS of all the
 //      weights, and since the tray is a fixed set, the total is fixed too,
-//      which leaves only one possible answer. The brute force double-checks
-//      this by actually counting, and it would catch any future rule change
-//      (such as a decoy weight) that breaks it.
+//      which leaves only one possible answer. With spare weights or a "?"
+//      arm that reasoning no longer holds, so the brute force really matters:
+//      it tries every choice of weights AND every possible "?" length (1–6).
 //   5. It fits a 360px phone: no two hooks closer than 44px (a finger's width).
 //   6. No two puzzles in the same file are the same puzzle (mirror images count as the same).
 //
@@ -47,6 +48,18 @@ function allBarsBalanced(bars: Bar[], placement: Placement): boolean {
   return bars.every((bar) => isBarBalanced(bar, placement))
 }
 
+/** Like allBarsBalanced, but a "?" arm may be ANY length from 1 to MAX_NOTCHES (what the player sees). */
+function couldAllBalance(bars: Bar[], placement: Placement): boolean {
+  return bars.every((bar) => {
+    if (!bar.hidden) return isBarBalanced(bar, placement)
+    for (let n = 1; n <= MAX_NOTCHES; n++) {
+      const tryBar = bar.hidden === 'left' ? { ...bar, leftNotches: n } : { ...bar, rightNotches: n }
+      if (isBarBalanced(tryBar, placement)) return true
+    }
+    return false
+  })
+}
+
 // ---------- Check 1 & 2: is the data well-formed? ----------
 
 function findDataProblems(puzzle: Puzzle): string[] {
@@ -72,8 +85,8 @@ function findDataProblems(puzzle: Puzzle): string[] {
   const w = puzzle.weights
   if (w.some((x) => !Number.isInteger(x) || x < 1)) problems.push('weights must be positive whole numbers')
   if (new Set(w).size !== w.length) problems.push('weights must all be different')
-  if (w.length !== hooks.length) {
-    problems.push(`${hooks.length} hooks but ${w.length} weights (must be equal)`)
+  if (w.length < hooks.length) {
+    problems.push(`${hooks.length} hooks but only ${w.length} weights`)
   }
 
   // Stored solution: covers every hook, and uses each weight exactly once.
@@ -82,11 +95,11 @@ function findDataProblems(puzzle: Puzzle): string[] {
   if (hookIds.join() !== solutionIds.join()) {
     problems.push(`solution hooks [${solutionIds}] don't match puzzle hooks [${hookIds}]`)
   }
-  const used = Object.values(puzzle.solution).sort((a, b) => a - b)
-  const available = [...w].sort((a, b) => a - b)
-  if (used.join() !== available.join()) {
-    problems.push(`solution uses weights [${used}] but the tray has [${available}]`)
+  const used = Object.values(puzzle.solution)
+  if (new Set(used).size !== used.length || used.some((x) => !w.includes(x))) {
+    problems.push(`solution uses weights [${used}] but the tray has [${w}] (each at most once)`)
   }
+  if (bars.filter((bar) => bar.hidden).length > 1) problems.push('more than one "?" arm')
 
   return problems
 }
@@ -95,8 +108,8 @@ function findDataProblems(puzzle: Puzzle): string[] {
 
 /**
  * Tries every way to put the weights on the hooks (for 7 weights that is
- * 7 × 6 × 5 × 4 × 3 × 2 × 1 = 5,040 ways) and returns every arrangement that
- * balances all bars. Stops early once it finds 2, because 2 already means
+ * 7 × 6 × 5 × 4 × 3 × 2 × 1 = 5,040 ways; with 9 weights on 7 hooks it's
+ * 181,440) and returns every arrangement that balances all bars. Stops early once it finds 2, because 2 already means
  * "not unique".
  */
 function findAllSolutions(puzzle: Puzzle): Placement[] {
@@ -111,7 +124,7 @@ function findAllSolutions(puzzle: Puzzle): Placement[] {
     if (solutions.length >= 2) return
     if (index === hooks.length) {
       // Every hook is filled: is everything balanced?
-      if (allBarsBalanced(bars, placement)) solutions.push({ ...placement })
+      if (couldAllBalance(bars, placement)) solutions.push({ ...placement })
       return
     }
     const hookId = hooks[index].id

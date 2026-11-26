@@ -4,7 +4,7 @@
 
 import { describe, expect, it } from 'vitest'
 import { collectBars, collectHooks, isBarBalanced } from './balance.ts'
-import { countFootholds } from './generator.ts'
+import { countFootholds, findSolutions } from './generator.ts'
 import { MIN_HOOK_SPACING_PX, minHookSpacingOnPhone } from './layout.ts'
 import { makePracticePuzzle, PRACTICE_DIFFICULTIES } from './practice.ts'
 import type { Placement, Puzzle } from './types.ts'
@@ -61,5 +61,32 @@ describe('practice puzzles', () => {
     const a = JSON.stringify(makePracticePuzzle('medium', 1).root)
     const b = JSON.stringify(makePracticePuzzle('medium', 2).root)
     expect(a).not.toBe(b)
+  })
+})
+
+describe('findSolutions (spare weights and "?" arms)', () => {
+  // One bar, 2 notches left : 1 right, two hooks.
+  const bar = (tray: number[], hidden?: 'left' | 'right'): Puzzle => ({
+    id: 't',
+    title: 't',
+    weights: tray,
+    solution: { a: 1, b: 2 },
+    root: { kind: 'bar', id: 'TOP', leftNotches: 2, rightNotches: 1, hidden, left: { kind: 'hook', id: 'a' }, right: { kind: 'hook', id: 'b' } },
+  })
+
+  it('with no spare weights, 2:1 has one answer (1 and 2)', () => {
+    expect(findSolutions(bar([1, 2]))).toEqual([{ a: 1, b: 2 }])
+  })
+
+  it('spare weights can allow a second answer (2 and 4 also fit 2:1)', () => {
+    expect(findSolutions(bar([1, 2, 3, 4]))).toHaveLength(2)
+  })
+
+  it('a "?" arm accepts any length that would balance', () => {
+    // Left arm unknown. 1 left, 2 right: balances with a left arm of 2. 2 left, 1 right:
+    // would need a left arm of ½, which isn't a whole notch. So one answer.
+    expect(findSolutions(bar([1, 2], 'left'))).toEqual([{ a: 1, b: 2 }])
+    // With 1, 2 and 3 there are more: e.g. 1 left, 3 right balances with a left arm of 3.
+    expect(findSolutions(bar([1, 2, 3], 'left'), 10).length).toBeGreaterThan(1)
   })
 })

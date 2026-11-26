@@ -5,19 +5,21 @@
 // The map scrolls so the next level is in view when it opens.
 
 import { useEffect, useRef } from 'react'
-import { isUnlocked, levelTotals, nextLevel } from '../game/levels.ts'
+import { isUnlocked, levelTotals, nextLevel, sectionOf, weightsLabel } from '../game/levels.ts'
 import { LEVEL_PUZZLES } from '../game/puzzles.ts'
 import { loadLevelStars } from '../storage.ts'
 import { Stars } from './Stars.tsx'
 import './LevelsScreen.css'
 
-/** A friendly name for each group, by number of weights. */
-const GROUP_NAMES: Record<number, string> = {
-  3: 'First steps',
-  4: 'Warming up',
-  5: 'Getting serious',
-  6: 'Tricky',
-  7: 'Fiendish',
+/** A friendly name for each section (see sectionOf in levels.ts). */
+const GROUP_NAMES: Record<string, string> = {
+  '3': 'First steps',
+  '4': 'Warming up',
+  '5': 'Getting serious',
+  '6': 'Tricky',
+  '7': 'Fiendish',
+  '9+2': 'Master',
+  '9+2?': 'Grandmaster',
 }
 
 export function LevelsScreen({ onPlay }: { onPlay: (level: number) => void }) {
@@ -32,11 +34,11 @@ export function LevelsScreen({ onPlay }: { onPlay: (level: number) => void }) {
     nextRef.current?.scrollIntoView({ block: 'center' })
   }, [])
 
-  // Group level numbers by how many weights they have: { 3: [1..5], 4: [6..12], … }
-  const groups = new Map<number, number[]>()
+  // Group level numbers by section: { '3': [1..5], '4': [6..12], … }
+  const groups = new Map<string, number[]>()
   LEVEL_PUZZLES.forEach((p, i) => {
-    const size = p.weights.length
-    groups.set(size, [...(groups.get(size) ?? []), i + 1])
+    const section = sectionOf(p)
+    groups.set(section, [...(groups.get(section) ?? []), i + 1])
   })
 
   return (
@@ -59,12 +61,12 @@ export function LevelsScreen({ onPlay }: { onPlay: (level: number) => void }) {
         </div>
       </div>
 
-      {[...groups].map(([size, levels]) => (
-        <div key={size} className="levels-group">
+      {[...groups].map(([section, levels]) => (
+        <div key={section} className="levels-group">
           <h3 className="levels-group-title">
-            {GROUP_NAMES[size] ?? `${size} weights`}
+            {GROUP_NAMES[section] ?? weightsLabel(LEVEL_PUZZLES[levels[0] - 1])}
             <span>
-              {size} weights · {levels[0]}–{levels.at(-1)}
+              {weightsLabel(LEVEL_PUZZLES[levels[0] - 1])} · {levels[0]}–{levels.at(-1)}
             </span>
           </h3>
           <ol className="levels-grid">

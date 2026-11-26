@@ -23,6 +23,11 @@ export type Bar = {
   leftNotches: number
   /** Length of the right arm, in notches. */
   rightNotches: number
+  /**
+   * Hardest levels only: one arm's length is kept secret and shown as "?".
+   * The player works it out. (The game still knows it, to check balance.)
+   */
+  hidden?: 'left' | 'right'
   /** What hangs at the end of the left arm. */
   left: MobileNode
   /** What hangs at the end of the right arm. */
@@ -51,7 +56,11 @@ export type Puzzle = {
   outro?: string
   /** Tutorial only: friendly names for the bars, for the balance meter (bar id -> name). */
   barNames?: Record<string, string>
-  /** The weights in the tray, e.g. [1, 2, 3, 4, 5, 6, 7]. Each is used once. */
+  /**
+   * The weights in the tray, e.g. [1, 2, 3, 4, 5, 6, 7]. Each is used at most once.
+   * Usually there is one weight per hook. Hard levels have MORE weights than
+   * hooks: the extra ones are "spare" and stay in the tray.
+   */
   weights: number[]
   /** The top bar of the mobile. */
   root: Bar

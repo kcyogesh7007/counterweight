@@ -18,8 +18,9 @@ import type { Placement, Puzzle } from './types.ts'
 export const MAX_HINTS = 1
 
 export type Hint =
-  /** `weight` is on `hookId` but belongs on `correctHookId` (`correctIsFree`: that hook is empty, so it can be shown). */
-  | { kind: 'wrong-weight'; hookId: string; weight: number; correctHookId: string; correctIsFree: boolean }
+  /** `weight` is on `hookId` but belongs on `correctHookId` (`correctIsFree`: that hook is empty, so it can be shown).
+   *  `correctHookId` is null when the weight is a spare that isn't used at all. */
+  | { kind: 'wrong-weight'; hookId: string; weight: number; correctHookId: string | null; correctIsFree: boolean }
   /** On bar `barId`, only `leftWeight` (on `leftHookId`) and `rightWeight` (on `rightHookId`) balance. */
   | {
       kind: 'foothold'
@@ -38,6 +39,7 @@ export type Hint =
 export function hintMessage(hint: Hint): string {
   switch (hint.kind) {
     case 'wrong-weight':
+      if (hint.correctHookId === null) return `Hint: the ${hint.weight} is a spare. It isn't used, so take it down.`
       return hint.correctIsFree
         ? `Hint: the ${hint.weight} is on the wrong hook. Move it to the gold ${hint.weight}.`
         : `Hint: the ${hint.weight} is on the wrong hook. Take it down and try another one.`
@@ -54,7 +56,7 @@ export function hintMessage(hint: Hint): string {
 export function hintGhosts(hint: Hint): Record<string, number> {
   switch (hint.kind) {
     case 'wrong-weight':
-      return hint.correctIsFree ? { [hint.correctHookId]: hint.weight } : {}
+      return hint.correctIsFree && hint.correctHookId !== null ? { [hint.correctHookId]: hint.weight } : {}
     case 'foothold':
       return { [hint.leftHookId]: hint.leftWeight, [hint.rightHookId]: hint.rightWeight }
     case 'place':
@@ -79,8 +81,10 @@ export function findHint(puzzle: Puzzle, placement: Placement): Hint | null {
   // 1. A wrong weight (the first one, left to right, so it's predictable).
   for (const [hookId, weight] of Object.entries(placement)) {
     if (puzzle.solution[hookId] !== weight) {
-      const correctHookId = Object.keys(puzzle.solution).find((id) => puzzle.solution[id] === weight)!
-      return { kind: 'wrong-weight', hookId, weight, correctHookId, correctIsFree: placement[correctHookId] === undefined }
+      // (A spare weight belongs on no hook at all.)
+      const correctHookId = Object.keys(puzzle.solution).find((id) => puzzle.solution[id] === weight) ?? null
+      const correctIsFree = correctHookId !== null && placement[correctHookId] === undefined
+      return { kind: 'wrong-weight', hookId, weight, correctHookId, correctIsFree }
     }
   }
 
@@ -88,6 +92,7 @@ export function findHint(puzzle: Puzzle, placement: Placement): Hint | null {
   const w = puzzle.weights
   for (const bar of collectBars(puzzle.root)) {
     if (bar.left.kind !== 'hook' || bar.right.kind !== 'hook') continue
+    if (bar.hidden) continue // never give a "?" arm away
     if (placement[bar.left.id] !== undefined || placement[bar.right.id] !== undefined) continue
     const pairs = w.flatMap((x) => w.filter((y) => y !== x && x * bar.leftNotches === y * bar.rightNotches).map((y) => [x, y]))
     if (pairs.length === 1) {

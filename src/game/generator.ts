@@ -148,8 +148,10 @@ export function tryMakePuzzle(
   random: () => number,
   maxNotches = DEFAULT_MAX_NOTCHES,
   method: ShuffleMethod = 'legacy',
+  /** How many weights go in the tray (1…trayCount). More than weightCount = some are spare. */
+  trayCount = weightCount,
 ): Puzzle | null {
-  const weights = Array.from({ length: weightCount }, (_, i) => i + 1)
+  const weights = Array.from({ length: trayCount }, (_, i) => i + 1)
   const root = randomShape(weightCount, MAX_BAR_LEVELS, random, { bar: 0, hook: 0 })
   if (!root || root.kind !== 'bar') return null
   const placement = findShortArmPlacement(root, weights, random, maxNotches, method)
@@ -212,9 +214,77 @@ export function countFootholds(puzzle: Puzzle): number {
   const w = puzzle.weights
   return collectBars(puzzle.root).filter((bar) => {
     if (bar.left.kind !== 'hook' || bar.right.kind !== 'hook') return false
+    if (bar.hidden) return false // a "?" arm can't be read off directly
     const pairs = w.flatMap((x) => w.filter((y) => y !== x && x * bar.leftNotches === y * bar.rightNotches))
     return pairs.length === 1
   }).length
+}
+
+/**
+ * Every way to hang the weights that a careful player could accept, found by
+ * trying them all (stops once it has `limit`). A fair puzzle has exactly 1.
+ *
+ *   - Spare weights: any weights from the tray may be left over.
+ *   - A "?" arm: any whole length from 1 to maxNotches is allowed, so a bar
+ *     with a "?" counts as balanced if SOME length would balance it.
+ */
+export function findSolutions(puzzle: Puzzle, limit = 2, maxNotches = DEFAULT_MAX_NOTCHES): Placement[] {
+  return searchAll(puzzle, limit, maxNotches).solutions
+}
+
+/**
+ * Difficulty score for the hardest levels (spare weights, "?" arms): how many
+ * placements a careful solver tries while checking EVERY possibility.
+ */
+export function countFullSearchSteps(puzzle: Puzzle, maxNotches = DEFAULT_MAX_NOTCHES): number {
+  return searchAll(puzzle, Infinity, maxNotches).steps
+}
+
+function searchAll(puzzle: Puzzle, limit: number, maxNotches: number): { solutions: Placement[]; steps: number } {
+  const hooks = collectHooks(puzzle.root)
+  const bars = collectBars(puzzle.root)
+  // The last hook under each bar: once it's filled, that bar can be checked.
+  const barsDoneAt = new Map<string, Bar[]>()
+  for (const bar of bars) {
+    const last = collectHooks(bar).at(-1)!.id
+    barsDoneAt.set(last, [...(barsDoneAt.get(last) ?? []), bar])
+  }
+  const placement: Placement = {}
+  const used = new Set<number>()
+  const solutions: Placement[] = []
+  let steps = 0
+
+  function canBalance(bar: Bar): boolean {
+    const l = totalWeight(bar.left, placement)
+    const r = totalWeight(bar.right, placement)
+    if (bar.hidden === 'left') return canBeArm((r * bar.rightNotches) / l, maxNotches)
+    if (bar.hidden === 'right') return canBeArm((l * bar.leftNotches) / r, maxNotches)
+    return l * bar.leftNotches === r * bar.rightNotches
+  }
+
+  function tryHook(i: number): void {
+    if (solutions.length >= limit) return
+    if (i === hooks.length) {
+      solutions.push({ ...placement })
+      return
+    }
+    for (const w of puzzle.weights) {
+      if (used.has(w)) continue
+      placement[hooks[i].id] = w
+      used.add(w)
+      steps++
+      if ((barsDoneAt.get(hooks[i].id) ?? []).every(canBalance)) tryHook(i + 1)
+      used.delete(w)
+      delete placement[hooks[i].id]
+    }
+  }
+
+  tryHook(0)
+  return { solutions, steps }
+}
+
+function canBeArm(length: number, maxNotches: number): boolean {
+  return Number.isInteger(length) && length >= 1 && length <= maxNotches
 }
 
 /** How many levels of bars (1 = a single bar). */

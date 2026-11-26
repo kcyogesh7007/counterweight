@@ -7,7 +7,8 @@
 
 import { describe, expect, it } from 'vitest'
 import { findHint, hintGhosts, hintMessage, isHintStillUseful, type Hint } from './hints.ts'
-import { DAILY_PUZZLES } from './puzzles.ts'
+import { collectBars } from './balance.ts'
+import { DAILY_PUZZLES, LEVEL_PUZZLES } from './puzzles.ts'
 import type { Placement } from './types.ts'
 
 const puzzle = DAILY_PUZZLES[0]
@@ -78,5 +79,23 @@ describe('isHintStillUseful', () => {
   it('drops a "take it down" hint (nothing to show) after any move', () => {
     const takeDown: Hint = { kind: 'wrong-weight', hookId: 'a', weight: 3, correctHookId: 'c1', correctIsFree: false }
     expect(isHintStillUseful(takeDown, {})).toBe(false)
+  })
+})
+
+describe('hints with spare weights', () => {
+  it('a spare weight on a hook gets "it is a spare, take it down"', () => {
+    const puzzle = LEVEL_PUZZLES[60] // Master: 2 spare weights
+    const spare = puzzle.weights.find((w) => !Object.values(puzzle.solution).includes(w))!
+    const hint = findHint(puzzle, { a: spare })!
+    expect(hint.kind).toBe('wrong-weight')
+    expect(hintMessage(hint)).toBe(`Hint: the ${spare} is a spare. It isn't used, so take it down.`)
+    expect(hintGhosts(hint)).toEqual({})
+  })
+
+  it('never points at a bar with a "?" arm as a starting bar', () => {
+    for (const puzzle of LEVEL_PUZZLES.slice(80)) {
+      const hint = findHint(puzzle, {})!
+      if (hint.kind === 'foothold') expect(collectBars(puzzle.root).find((b) => b.id === hint.barId)?.hidden).toBeUndefined()
+    }
   })
 })

@@ -12,7 +12,7 @@
 // We work BOTTOM-UP with recursion: to size a bar we first measure the two
 // things hanging under it (which measure the things under THEM, and so on).
 
-import type { MobileNode } from './types.ts'
+import type { Bar, MobileNode } from './types.ts'
 
 /** Drawing sizes, in SVG units (~ pixels on a 360px phone). */
 export const SIZES = {
@@ -65,6 +65,15 @@ export type MobileLayout = {
   viewBox: { x: number; y: number; width: number; height: number }
 }
 
+/**
+ * How many notches long to DRAW each arm. Normally the real lengths. A bar
+ * with a "?" arm is drawn with two equal arms (and no notch marks), so the
+ * picture doesn't give the secret length away.
+ */
+export function drawnNotches(bar: Bar): { left: number; right: number } {
+  return bar.hidden ? { left: 3, right: 3 } : { left: bar.leftNotches, right: bar.rightNotches }
+}
+
 /** Measures one branch (recursively) and records each bar's notch size. */
 function measure(node: MobileNode, notchUnit: Record<string, number>): Extent {
   if (node.kind === 'hook') {
@@ -82,13 +91,14 @@ function measure(node: MobileNode, notchUnit: Record<string, number>): Extent {
   // The left branch hangs at  −leftNotches × unit, the right at  +rightNotches × unit.
   // Distance between them = (leftNotches + rightNotches) × unit. That must fit the
   // right half of the left branch + the left half of the right branch + a gap.
+  const drawn = drawnNotches(node)
   const spaceNeeded = left.right + right.left + SIZES.minGap
-  const unit = Math.max(SIZES.minNotchUnit, spaceNeeded / (node.leftNotches + node.rightNotches))
+  const unit = Math.max(SIZES.minNotchUnit, spaceNeeded / (drawn.left + drawn.right))
   notchUnit[node.id] = unit
 
   return {
-    left: node.leftNotches * unit + left.left,
-    right: node.rightNotches * unit + right.right,
+    left: drawn.left * unit + left.left,
+    right: drawn.right * unit + right.right,
     height: SIZES.barString + Math.max(left.height, right.height),
   }
 }
@@ -125,8 +135,9 @@ export function hookXPositions(root: MobileNode, layout: MobileLayout): number[]
       return
     }
     const unit = layout.notchUnit[node.id]
-    walk(node.left, x - node.leftNotches * unit)
-    walk(node.right, x + node.rightNotches * unit)
+    const drawn = drawnNotches(node)
+    walk(node.left, x - drawn.left * unit)
+    walk(node.right, x + drawn.right * unit)
   }
   walk(root, 0)
   return xs.sort((a, b) => a - b)

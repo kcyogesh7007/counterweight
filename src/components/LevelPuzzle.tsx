@@ -6,7 +6,7 @@
 
 import { useState } from 'react'
 import { countEvent } from '../analytics.ts'
-import { starsFor } from '../game/levels.ts'
+import { starsFor, weightsLabel } from '../game/levels.ts'
 import { LEVEL_PUZZLES } from '../game/puzzles.ts'
 import { loadLevelStars, saveLevelStars } from '../storage.ts'
 import { GameScreen } from './GameScreen.tsx'
@@ -51,7 +51,7 @@ export function LevelPuzzle({ level, onNextLevel, onMap }: Props) {
       puzzle={puzzle}
       subtitle={
         <p className="difficulty level-subtitle">
-          <span>{base.weights.length} weights</span>
+          <span>{weightsLabel(base)}</span>
           {bestBefore > 0 && (
             <>
               <span aria-hidden="true">·</span>

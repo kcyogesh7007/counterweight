@@ -24,7 +24,7 @@
 
 import { useId, useMemo, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
 import { collectBars, collectHooks, getTiltDegrees } from '../game/balance.ts'
-import { SIZES, computeLayout, weightRadius, type MobileLayout } from '../game/layout.ts'
+import { SIZES, computeLayout, drawnNotches, weightRadius, type MobileLayout } from '../game/layout.ts'
 import { hintGhosts, type Hint } from '../game/hints.ts'
 import type { Bar, Hook, MobileNode, Placement, Puzzle } from '../game/types.ts'
 import './MobileView.css'
@@ -168,19 +168,20 @@ export function MobileView(props: MobileViewProps) {
 function describeBar(bar: Bar, placement: Placement): string {
   const tilt = getTiltDegrees(bar, placement)
   const state = tilt === 0 ? 'level' : tilt > 0 ? 'right side lower' : 'left side lower'
-  const notches = (n: number) => `${n} ${n === 1 ? 'notch' : 'notches'}`
-  return `Bar ${bar.id}, ${notches(bar.leftNotches)} left, ${notches(bar.rightNotches)} right: ${state}.`
+  const notches = (n: number, secret: boolean) => (secret ? 'an unknown number of notches' : `${n} ${n === 1 ? 'notch' : 'notches'}`)
+  return `Bar ${bar.id}, ${notches(bar.leftNotches, bar.hidden === 'left')} left, ${notches(bar.rightNotches, bar.hidden === 'right')} right: ${state}.`
 }
 
 // ---------- Drawing one node (a bar or a hook) ----------
 
-/** An arm's length in notches, shown above the arm like a measurement on a drawing: |—— 5 ——| */
-function ArmLength({ from, to, notches, beam }: { from: number; to: number; notches: number; beam: number }) {
+/** An arm's length in notches, shown above the arm like a measurement on a drawing: |—— 5 ——|
+ *  A secret arm shows "?" instead. */
+function ArmLength({ from, to, notches, beam }: { from: number; to: number; notches: number | '?'; beam: number }) {
   const y = -beam / 2 - 10 // just above the bar
   const start = Math.min(from, to) + 4 // stop short of the pivot and the tip
   const end = Math.max(from, to) - 4
   const middle = (from + to) / 2
-  const tagWidth = notches >= 10 ? 20 : 15
+  const tagWidth = typeof notches === 'number' && notches >= 10 ? 20 : 15
   return (
     <g className="mobile-arm-length" aria-hidden="true">
       {/* The measuring line, with a tick at each end */}
@@ -203,8 +204,9 @@ function NodeView({ node, ctx }: { node: MobileNode; ctx: DrawContext }) {
 
 function BarView({ bar, ctx }: { bar: Bar; ctx: DrawContext }) {
   const unit = ctx.layout.notchUnit[bar.id]
-  const leftEnd = -bar.leftNotches * unit // x of the left arm's tip
-  const rightEnd = bar.rightNotches * unit // x of the right arm's tip
+  const drawn = drawnNotches(bar) // a bar with a "?" arm is drawn with equal arms
+  const leftEnd = -drawn.left * unit // x of the left arm's tip
+  const rightEnd = drawn.right * unit // x of the right arm's tip
   // Degrees to rotate: positive = right side dips, negative = left side dips, 0 = level.
   const tilt = getTiltDegrees(bar, ctx.placement)
 
@@ -245,8 +247,9 @@ function BarView({ bar, ctx }: { bar: Bar; ctx: DrawContext }) {
         <rect className="mobile-bar-shine" x={leftEnd} y={-beam / 2 + 1} width={rightEnd - leftEnd} height={1.3} rx={0.65} />
 
         {/* Notch marks: small engraved lines across the bar, one per notch
-            (the last notch is the tip, where the gold cap sits) */}
-        {[...notchPositions(bar.leftNotches - 1, -unit), ...notchPositions(bar.rightNotches - 1, unit)].map((nx) => (
+            (the last notch is the tip, where the gold cap sits). None on a
+            bar with a "?" arm: counting them would give the secret away. */}
+        {!bar.hidden && [...notchPositions(bar.leftNotches - 1, -unit), ...notchPositions(bar.rightNotches - 1, unit)].map((nx) => (
           <g key={nx}>
             <line className="mobile-notch" x1={nx} y1={-beam / 2 + 1.5} x2={nx} y2={beam / 2 - 1.5} />
             <line className="mobile-notch-light" x1={nx + 0.9} y1={-beam / 2 + 1.5} x2={nx + 0.9} y2={beam / 2 - 1.5} />
@@ -259,8 +262,8 @@ function BarView({ bar, ctx }: { bar: Bar; ctx: DrawContext }) {
 
         {/* How long each arm is (in notches), drawn like a ruler measurement
             so it can't be mistaken for a weight */}
-        <ArmLength from={0} to={leftEnd} notches={bar.leftNotches} beam={beam} />
-        <ArmLength from={0} to={rightEnd} notches={bar.rightNotches} beam={beam} />
+        <ArmLength from={0} to={leftEnd} notches={bar.hidden === 'left' ? '?' : bar.leftNotches} beam={beam} />
+        <ArmLength from={0} to={rightEnd} notches={bar.hidden === 'right' ? '?' : bar.rightNotches} beam={beam} />
 
         {/* The pivot: a gold ball joint in a dark collar, with a bright
             highlight. It glows (and turns emerald) when the puzzle is solved. */}

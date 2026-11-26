@@ -2,10 +2,15 @@
 //
 //   Stars (for one solve):   0 re-hangs -> ★★★,  1–2 -> ★★☆,  3 or more -> ★☆☆
 //   You keep your BEST stars for each level (replay to improve).
-//   Levels come in sections by size (3 weights, 4 weights, … 7 weights).
+//   Levels come in sections: by size (3 weights … 7 weights), then two expert
+//   sections with SPARE weights (Master), and spare weights plus a "?" arm
+//   (Grandmaster).
 //   The FIRST level of every section is always open, so you can start with
 //   the hard ones if you like. Inside a section, each level opens once the
 //   one before it has been solved (with any number of stars).
+
+import { collectBars } from './balance.ts'
+import type { Bar } from './types.ts'
 
 /** Stars for one solve, from the number of re-hangs. */
 export function starsFor(rehangs: number): 1 | 2 | 3 {
@@ -19,13 +24,13 @@ export type LevelStars = Record<number, number>
 
 /**
  * Can this level be played yet? `levels` is the list of all levels (to see
- * where each section starts: a section starts where the number of weights changes).
+ * where each section starts: a section starts where sectionOf changes).
  */
-export function isUnlocked(level: number, stars: LevelStars, levels: { weights: number[] }[]): boolean {
+export function isUnlocked(level: number, stars: LevelStars, levels: SectionInfo[]): boolean {
   const current = levels[level - 1]
   if (!current) return false // no such level
   const before = levels[level - 2]
-  if (!before || before.weights.length !== current.weights.length) return true // first of its section
+  if (!before || sectionOf(before) !== sectionOf(current)) return true // first of its section
   return stars[level - 1] !== undefined
 }
 
@@ -43,7 +48,27 @@ export function levelTotals(stars: LevelStars): { solved: number; stars: number 
   return { solved: values.length, stars: values.reduce((sum, s) => sum + s, 0) }
 }
 
-/** How many weights a level has: used for the group headings on the map. */
-export function weightCountOf(level: { weights: number[] }): number {
-  return level.weights.length
+/** What a level needs for working out its section. */
+type SectionInfo = { weights: number[]; solution: Record<string, number>; root: Bar }
+
+/** How many tray weights are spare (not used): 0 for normal levels. */
+export function spareCount(level: SectionInfo): number {
+  return level.weights.length - Object.keys(level.solution).length
+}
+
+/** True if some arm's length is a secret "?". */
+export function hasHiddenArm(level: SectionInfo): boolean {
+  return collectBars(level.root).some((bar) => bar.hidden)
+}
+
+/** Which section a level belongs to, e.g. "5" (5 weights), "9+2" (2 spare), "9+2?" (and a "?" arm). */
+export function sectionOf(level: SectionInfo): string {
+  const spare = spareCount(level)
+  return `${level.weights.length}${spare ? `+${spare}` : ''}${hasHiddenArm(level) ? '?' : ''}`
+}
+
+/** e.g. "7 weights", "9 weights · 2 spare", or "9 weights · 2 spare · ? arm" */
+export function weightsLabel(level: SectionInfo): string {
+  const spare = spareCount(level)
+  return `${level.weights.length} weights${spare ? ` · ${spare} spare` : ''}${hasHiddenArm(level) ? ' · ? arm' : ''}`
 }
